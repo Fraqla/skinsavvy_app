@@ -1,23 +1,11 @@
 // main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:skinsavvy_app/viewmodels/auth_viewmodel.dart';
-import 'package:skinsavvy_app/viewmodels/landing_viewmodel.dart';
-import 'package:skinsavvy_app/views/landing_page.dart';
-import 'package:skinsavvy_app/views/login_page.dart';
-import 'package:skinsavvy_app/views/register_view.dart';
+import 'viewmodels/login_view_model.dart';
+import 'views/landing_view.dart';
+
 void main() {
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthViewModel(apiService: ApiService()),
-        ),
-        ChangeNotifierProvider(create: (_) => LandingViewModel()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -25,12 +13,20 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SkinSavvy',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => LoginViewModel()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'SkinSavvy',
+        theme: ThemeData(
+          primarySwatch: Colors.pink,
+          scaffoldBackgroundColor: Colors.white,
+          fontFamily: 'Arial',
+        ),
+        home: const LandingView(),
       ),
-      home: const RegisterPage(),
     );
   }
 }

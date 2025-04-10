@@ -7,10 +7,10 @@ class AuthViewModel extends ChangeNotifier {
   
   // Auth state
   UserModel? _currentUser;
-  bool _isAuthLoading = false;
+  bool _isAuthLoading = false; // Corrected variable name
   String? _authError;
   
-  // Registration state (from your RegisterViewModel)
+  // Registration state
   bool _isRegisterLoading = false;
   bool _isRegisterSuccess = false;
   String? _registerError;
@@ -22,33 +22,33 @@ class AuthViewModel extends ChangeNotifier {
   bool get isLoggedIn => _currentUser != null;
   
   // Auth getters
-  bool get isAuthLoading => _authLoading;
+  bool get isAuthLoading => _isAuthLoading; // Fixed getter
   String? get authError => _authError;
   
-  // Registration getters (from RegisterViewModel)
+  // Registration getters
   bool get isRegisterLoading => _isRegisterLoading;
   bool get isRegisterSuccess => _isRegisterSuccess;
   String? get registerError => _registerError;
 
   // Login method
   Future<void> login(String email, String password) async {
-    _authLoading = true;
+    _isAuthLoading = true; // Fixed variable name
     _authError = null;
     notifyListeners();
 
+// TODO: Implement actual login API call
     try {
-      // TODO: Implement actual login API call
       _currentUser = UserModel(name: "Demo User", email: email);
     } catch (e) {
       _authError = e.toString();
       rethrow;
     } finally {
-      _authLoading = false;
+      _isAuthLoading = false; // Fixed variable name
       notifyListeners();
     }
   }
 
-  // Register method (from your RegisterViewModel)
+  // Register method
   Future<void> register({
     required String name,
     required String email,
