@@ -47,7 +47,10 @@ Future<void> _fetchCategories() async {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => CategoryProductsView(categoryId: category.id, categoryName: category.name,),
+          builder: (_) => CategoryProductsView(
+            categoryId: category.id,
+            categoryName: category.name,
+          ),
         ),
       );
     },
@@ -56,6 +59,7 @@ Future<void> _fetchCategories() async {
       margin: const EdgeInsets.only(right: 16),
       child: Column(
         children: [
+          // Replace Icon with Image
           Container(
             width: 60,
             height: 60,
@@ -70,9 +74,20 @@ Future<void> _fetchCategories() async {
                 ),
               ],
             ),
-            child: const Center(
-              child: Icon(Icons.category, color: Colors.pink),  // Default icon for now
-            ),
+            child: category.imageUrl != null
+                ? Image.network(
+                    "http://localhost:8000/image/${category.imageUrl.split('/').last}", // Assuming category.imageUrl gives the correct path
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) {
+                        return child;
+                      }
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.image_not_supported),
+                  )
+                : const Center(child: Icon(Icons.image_not_supported)),
           ),
           const SizedBox(height: 8),
           Text(
@@ -85,6 +100,7 @@ Future<void> _fetchCategories() async {
     ),
   );
 }
+
 
 
   @override

@@ -4,7 +4,6 @@ import '../models/category_model.dart';
 import '../services/api_service.dart';
 import '../views/category_products_view.dart'; // update the path if it's in a subfolder
 
-
 class CategoriesView extends StatefulWidget {
   const CategoriesView({super.key});
 
@@ -71,18 +70,17 @@ class _CategoriesViewState extends State<CategoriesView> {
               itemBuilder: (context, index) {
                 final category = _categories[index];
                 return GestureDetector(
-                 onTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => CategoryProductsView(
-        categoryId: category.id,
-        categoryName: category.name,
-      ),
-    ),
-  );
-},
-
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CategoryProductsView(
+                          categoryId: category.id,
+                          categoryName: category.name,
+                        ),
+                      ),
+                    );
+                  },
                   child: Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -91,6 +89,14 @@ class _CategoriesViewState extends State<CategoriesView> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
+                        Image.network(
+                          "http://localhost:8000/image/${category.imageUrl.split('/').last}", // this extracts the filename only
+                          height: 80,
+                          width: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.image_not_supported),
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           category.name,
