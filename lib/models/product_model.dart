@@ -1,29 +1,33 @@
 class Product {
   final int id;
   final String name;
-  // final String imagePath;
-  final double price;
+  final String imageUrl;
+  final String description;
+  final String ingredient;
 
   Product({
     required this.id,
     required this.name,
-    // required this.imagePath,
-    required this.price,
+    required this.imageUrl,
+    required this.description,
+    required this.ingredient,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'] ?? 0,
       name: json['name'] ?? 'Unknown',
-      // imagePath: json['image_path'] ?? 'assets/images/default.png',
-      price: json['price']?.toDouble() ?? 0.0,
+      imageUrl: json['image'],
+      description: json['description'],
+      ingredient: json['ingredient'],
     );
   }
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'name': name,
-        // 'image_path': imagePath,
-        'price': price,
+        'imageUrl': imageUrl,
+        'description': description,
+        'ingredient': ingredient,
       };
 }

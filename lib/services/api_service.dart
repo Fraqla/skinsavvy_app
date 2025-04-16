@@ -5,6 +5,7 @@ import 'package:skinsavvy_app/models/user_model.dart';
 import 'package:skinsavvy_app/models/product_model.dart'; 
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import '../models/tips_model.dart';
 
 class ApiService {
   String get baseUrl {
@@ -111,6 +112,16 @@ Future<List<Product>> getProductsByCategory(int categoryId) async {
     throw Exception('Failed to load products by category');
   }
 }
+
+ Future<List<Tip>> getTips() async {
+    final response = await http.get(Uri.parse('$baseUrl/tips'));
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      return data.map((json) => Tip.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load tips');
+    }
+  }
 
 }
 
