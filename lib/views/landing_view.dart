@@ -7,7 +7,9 @@ import '../viewmodels/login_view_model.dart';
 import '../views/categories_view.dart';
 import '../views/category_products_view.dart';
 import 'login_view.dart';
-import 'tips_view.dart'; // Make sure you create and import TipsView
+import 'content/tips/tips_view.dart';
+import 'widgets/main_layout.dart'; 
+
 
 class LandingView extends StatefulWidget {
   const LandingView({super.key});
@@ -204,10 +206,12 @@ class _LandingViewState extends State<LandingView> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final loginVM = Provider.of<LoginViewModel>(context);
+Widget build(BuildContext context) {
+  final loginVM = Provider.of<LoginViewModel>(context);
 
-    return Scaffold(
+  return MainLayout(
+    currentIndex: 0,
+    body: Scaffold(
       appBar: AppBar(
         title: const Text('SkinSavvy'),
         actions: [
@@ -294,8 +298,10 @@ class _LandingViewState extends State<LandingView> {
                     : ListView(
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        children:
-                            _categories.take(4).map((category) => _categoryItem(category)).toList(),
+                        children: _categories
+                            .take(4)
+                            .map((category) => _categoryItem(category))
+                            .toList(),
                       ),
               ),
               // Tips Section integrated here
@@ -304,6 +310,8 @@ class _LandingViewState extends State<LandingView> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

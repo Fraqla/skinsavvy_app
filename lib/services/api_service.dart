@@ -1,25 +1,27 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:skinsavvy_app/models/category_model.dart' as models;  // Alias 'Category' as 'models'
+
 import 'package:skinsavvy_app/models/user_model.dart'; 
 import 'package:skinsavvy_app/models/product_model.dart'; 
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import '../models/tips_model.dart';
+import '../models/skin_knowledge_model.dart';
+import '../models/prohibited_product_model.dart';
 
 class ApiService {
   String get baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:8000/api';
-    } else if (Platform.isAndroid) {
-      final bool isEmulator = Platform.environment['EMULATOR'] == 'true';
-      return isEmulator 
-          ? 'http://10.0.2.2:8000/api'
-          : 'http://10.211.107.40:8000/api';
-    } else {
-      return 'http://10.211.107.40:8000/api';
-    }
+  if (kIsWeb) {
+    return 'http://localhost:8000/api';
+  } else if (Platform.isAndroid) {
+    // Always use 10.0.2.2 to access your host machine from emulator
+    return 'http://10.0.2.2:8000/api';
+  } else {
+    // iOS simulator or real device
+    return 'http://localhost:8000/api'; // or your actual IP if testing on real device
   }
+}
 
   Future<UserModel> register({
     required String name,
@@ -122,6 +124,33 @@ Future<List<Product>> getProductsByCategory(int categoryId) async {
       throw Exception('Failed to load tips');
     }
   }
+
+Future<List<SkinKnowledgeModel>> getSkinKnowledge() async {
+  final response = await http.get(Uri.parse('$baseUrl/skin-knowledge'));
+
+  if (response.statusCode == 200) {
+    final List<dynamic> data = json.decode(response.body);
+    return data
+        .map((json) => SkinKnowledgeModel.fromJson(json))
+        .toList();
+  } else {
+    throw Exception('Failed to load skin knowledge');
+  }
+}
+Future<List<ProhibitedProductModel>> getProhibitedProducts() async {
+  final response = await http.get(Uri.parse('$baseUrl/prohibited-products'));
+
+  if (response.statusCode == 200) {
+    final List<dynamic> data = json.decode(response.body);
+    return data
+        .map((json) => ProhibitedProductModel.fromJson(json))
+        .toList();
+  } else {
+    throw Exception('Failed to load prohibited products');
+  }
+}
+
+
 
 }
 

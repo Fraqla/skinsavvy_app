@@ -6,6 +6,8 @@ import 'viewmodels/category_view_model.dart';
 import 'viewmodels/product_view_model.dart';
 import 'viewmodels/tips_view_model.dart';
 import 'views/landing_view.dart';
+import 'viewmodels/skin_knowledge_view_model.dart';
+import 'viewmodels/prohibited_product_view_model.dart';
 
 void main() {
   runApp(const MyApp());
@@ -22,7 +24,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CategoryViewModel()),
         ChangeNotifierProvider(create: (_) => ProducViewModel()),
         ChangeNotifierProvider(create: (_) => TipsViewModel()),
-
+        ChangeNotifierProvider(create: (_) => SkinKnowledgeViewModel()),
+        ChangeNotifierProvider(create: (_) => ProhibitedProductViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
