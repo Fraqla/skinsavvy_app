@@ -2,6 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'viewmodels/login_view_model.dart';
+import 'viewmodels/category_view_model.dart';
+import 'viewmodels/product_view_model.dart';
+import 'viewmodels/tips_view_model.dart';
 import 'views/landing_view.dart';
 
 void main() {
@@ -16,6 +19,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
+        ChangeNotifierProvider(create: (_) => CategoryViewModel()),
+        ChangeNotifierProvider(create: (_) => ProducViewModel()),
+        ChangeNotifierProvider(create: (_) => TipsViewModel()),
+
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
