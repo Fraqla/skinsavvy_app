@@ -1,6 +1,7 @@
 // main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/views/content/promotion/promotion_detail_view.dart';
 import 'viewmodels/login_view_model.dart';
 import 'viewmodels/category_view_model.dart';
 import 'viewmodels/product_view_model.dart';
@@ -8,6 +9,8 @@ import 'viewmodels/tips_view_model.dart';
 import 'views/landing_view.dart';
 import 'viewmodels/skin_knowledge_view_model.dart';
 import 'viewmodels/prohibited_product_view_model.dart';
+import 'viewmodels/ingredient_view_model.dart';
+import 'viewmodels/promotion_view_model.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,6 +29,9 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TipsViewModel()),
         ChangeNotifierProvider(create: (_) => SkinKnowledgeViewModel()),
         ChangeNotifierProvider(create: (_) => ProhibitedProductViewModel()),
+        ChangeNotifierProvider(create: (_) => IngredientViewModel()),
+        ChangeNotifierProvider(create: (_) => PromotionViewModel()),
+        
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

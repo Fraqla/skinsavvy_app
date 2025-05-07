@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/category_model.dart';
 import '../services/api_service.dart';
+import 'package:provider/provider.dart';
 
 class CategoryViewModel extends ChangeNotifier {
   final ApiService _apiService = ApiService();

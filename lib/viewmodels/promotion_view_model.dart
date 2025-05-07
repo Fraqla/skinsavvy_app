@@ -1,30 +1,31 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import '../models/promotion_model.dart';
+import '../services/api_service.dart';
 
 class PromotionViewModel extends ChangeNotifier {
   List<PromotionModel> _promotions = [];
+  bool _isLoading = false;
+  String? _error;
 
   List<PromotionModel> get promotions => _promotions;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
 
   Future<void> fetchPromotions() async {
-    const url = 'http://your-laravel-api.test/api/promotions'; // Adjust with your actual API route
+    _isLoading = true;
+    notifyListeners();
 
     try {
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        _promotions = data
-            .map((json) => PromotionModel.fromJson(json))
-            .toList();
-        notifyListeners();
-      } else {
-        throw Exception('Failed to load promotions');
-      }
+      final response = await ApiService().getPromotions();
+      _promotions = response
+          .where((promo) => promo.isActive) // Only show active promotions
+          .toList();
+      _error = null;
     } catch (e) {
-      print('Error fetching promotions: $e');
+      _error = 'Failed to load promotions: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

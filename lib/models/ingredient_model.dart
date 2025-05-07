@@ -2,9 +2,9 @@ class IngredientModel {
   final int id;
   final String ingredientName;
   final String function;
-  final String facts;
-  final String benefits;
-  final String image;
+  final List<String> facts;
+  final List<String> benefits;
+  final String imageUrl; // Changed from image to imageUrl
 
   IngredientModel({
     required this.id,
@@ -12,7 +12,7 @@ class IngredientModel {
     required this.function,
     required this.facts,
     required this.benefits,
-    required this.image,
+    required this.imageUrl, // Changed from image to imageUrl
   });
 
   factory IngredientModel.fromJson(Map<String, dynamic> json) {
@@ -20,9 +20,9 @@ class IngredientModel {
       id: json['id'],
       ingredientName: json['ingredient_name'],
       function: json['function'],
-      facts: json['facts'],
-      benefits: json['benefits'],
-      image: json['image'],
+      facts: List<String>.from(json['facts'] ?? []),
+      benefits: List<String>.from(json['benefits'] ?? []),
+      imageUrl: json['image_url'], // Changed from image to image_url
     );
   }
 }

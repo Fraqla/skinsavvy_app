@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:skinsavvy_app/models/category_model.dart' as models;  // Alias 'Category' as 'models'
-
+import '../models/ingredient_model.dart'; 
 import 'package:skinsavvy_app/models/user_model.dart'; 
 import 'package:skinsavvy_app/models/product_model.dart'; 
 import 'package:flutter/foundation.dart';
@@ -9,7 +9,7 @@ import 'dart:io';
 import '../models/tips_model.dart';
 import '../models/skin_knowledge_model.dart';
 import '../models/prohibited_product_model.dart';
-
+import '../models/promotion_model.dart'; 
 class ApiService {
   String get baseUrl {
   if (kIsWeb) {
@@ -150,6 +150,31 @@ Future<List<ProhibitedProductModel>> getProhibitedProducts() async {
   }
 }
 
+Future<List<IngredientModel>> getIngredients() async {
+  final response = await http.get(Uri.parse('$baseUrl/ingredients'));
+
+  if (response.statusCode == 200) {
+    final List<dynamic> data = json.decode(response.body);
+    return data
+        .map((json) => IngredientModel.fromJson(json))
+        .toList();
+  } else {
+    throw Exception('Failed to load ingredient list');
+  }
+}
+
+Future<List<PromotionModel>> getPromotions() async {
+  final response = await http.get(Uri.parse('$baseUrl/promotions'));
+
+  if (response.statusCode == 200) {
+    final List<dynamic> data = json.decode(response.body);
+    return data
+        .map((json) => PromotionModel.fromJson(json))
+        .toList();
+  } else {
+    throw Exception('Failed to load promotion list');
+  }
+}
 
 
 }
