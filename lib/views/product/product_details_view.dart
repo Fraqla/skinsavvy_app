@@ -4,6 +4,9 @@ import 'package:skinsavvy_app/views/product/wishlist_view.dart';
 import '../../models/product_model.dart';
 import '../../services/auth_provider.dart';
 import '../../services/api_service.dart';
+import '../../viewmodels/wishlist_view_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../views/login_view.dart'; // Assuming this is the Login view you mentioned
 
 class ProductDetailsView extends StatelessWidget {
@@ -22,12 +25,51 @@ class ProductDetailsView extends StatelessWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.favorite_border),
-                 onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const WishlistView()),
-                );
-  })
+                onPressed: () {
+                  final authService =
+                      Provider.of<AuthService>(context, listen: false);
+
+                  // Check if the user is logged in
+                  if (authService.userId == null) {
+                    // If not logged in, prompt to log in
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Please log in'),
+                          content: const Text(
+                              'You need to be logged in to view your wishlist.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                // Navigate to the Login View
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const LoginView()),
+                                );
+                              },
+                              child: const Text('Log in'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop(); // Close the dialog
+                              },
+                              child: const Text('Cancel'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  } else {
+                    // If logged in, navigate to the Wishlist Page
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const WishlistView()),
+                    );
+                  }
+                },
+              )
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: Hero(
@@ -141,7 +183,24 @@ class ProductDetailsView extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () => addToWishlist(product, context),
+                      onPressed: () async {
+                        final wishlistVM = Provider.of<WishlistViewModel>(
+                            context,
+                            listen: false);
+
+                        final success = await wishlistVM.addToWishlist(product);
+                        if (success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Added to wishlist')),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    'Failed to add to wishlist. Please try again.')),
+                          );
+                        }
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Colors.white,
@@ -159,7 +218,6 @@ class ProductDetailsView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
                 ],
               ),
             ),
@@ -257,61 +315,5 @@ class ProductDetailsView extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void addToWishlist(Product product, BuildContext context) {
-    final authService = Provider.of<AuthService>(context, listen: false);
-
-    // Check if the user is logged in
-    if (authService.userId == null) {
-      // User is not logged in, prompt to log in
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Please log in'),
-            content: const Text(
-                'You need to be logged in to add items to the wishlist.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginView()),
-                  );
-                },
-                child: const Text('Log in'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Cancel'),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      // User is logged in, add the product to the wishlist
-      ApiService()
-          .addToWishlist(authService.userId!, product, context)
-          .then((response) {
-        if (response.statusCode != 200) {
-          // Check the response status
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Product added to wishlist')),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to add product to wishlist')),
-          );
-        }
-      }).catchError((e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error adding product to wishlist')),
-        );
-      });
-    }
   }
 }

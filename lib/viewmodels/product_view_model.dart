@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/product_model.dart';
 import '../services/api_service.dart';
 
-class ProducViewModel extends ChangeNotifier {
+class ProductViewModel extends ChangeNotifier {
   final ApiService _apiService = ApiService();
   List<Product> _products = [];
   bool _isLoading = false;

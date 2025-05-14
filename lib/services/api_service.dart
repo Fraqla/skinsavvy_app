@@ -13,7 +13,7 @@ import '../models/skin_knowledge_model.dart';
 import '../models/prohibited_product_model.dart';
 import '../models/promotion_model.dart';
 import '../models/skin_quiz_model.dart';
-import '../models/wishlist_item.dart';
+import '../models/wishlist_model.dart';
 import 'auth_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -232,39 +232,70 @@ class ApiService {
     }
   }
 
-  Future<http.Response> addToWishlist(
-      String userId, Product product, BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+Future<http.Response> addToWishlist(Product product) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('authToken');
+  final userId = prefs.getString('userId');
 
-    final response = await http.post(
-      Uri.parse('$baseUrl/wishlist'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        'user_id': userId,
-        'product_id': product.id,
-      }),
-    );
-
-    return response;
+  if (token == null || userId == null) {
+    throw Exception('User not authenticated');
   }
 
-  Future<List<WishlistItem>> getUserWishlist() async {
-    final response = await http.post(Uri.parse('$baseUrl/wishlist'));
+  final response = await http.post(
+    Uri.parse('$baseUrl/wishlist'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: json.encode({
+      'product_id': product.id,
+      'user_id': userId,
+    }),
+  );
 
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
+  return response;
+}
 
-      return (decoded['wishlist'] as List)
-          .map((item) => WishlistItem.fromJson(item))
-          .toList();
-    } else {
-      throw Exception("Failed to fetch wishlist");
-    }
+
+
+Future<List<WishlistItem>> getUserWishlist() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('authToken');
+
+  final response = await http.get(
+    Uri.parse('$baseUrl/wishlist'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+    },
+  );
+
+  // Print the raw response body to see what the server is returning
+  print('Response Body: ${response.body}');
+  
+  if (response.statusCode == 200) {
+    final decoded = jsonDecode(response.body);
+    return (decoded as List)
+        .map((item) => WishlistItem.fromJson(item))
+        .toList();
+  } else {
+    throw Exception("Failed to fetch wishlist: ${response.body}");
   }
+}
+
+// Remove an item from the wishlist
+Future<http.Response> removeFromWishlist(String wishlistItemId, String productId) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('authToken');
+
+  return await http.delete(
+    Uri.parse('$baseUrl/wishlist/$wishlistItemId'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Accept': 'application/json',
+    },
+  );
+}
 
   Future<Map<String, String>> _getHeaders({bool withAuth = false}) async {
     final headers = {
