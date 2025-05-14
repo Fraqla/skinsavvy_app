@@ -15,7 +15,7 @@ class _LoginViewState extends State<LoginView> {
 
   void _login(BuildContext context) async {
     final vm = Provider.of<LoginViewModel>(context, listen: false);
-    final success = await vm.login(emailController.text, passwordController.text);
+    final success = await vm.login(emailController.text, passwordController.text, context);
 
     if (success) {
       Navigator.pop(context); // Go back to dashboard

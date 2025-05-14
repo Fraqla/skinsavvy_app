@@ -5,7 +5,7 @@ import '../models/tips_model.dart';
 import '../services/api_service.dart';
 import '../viewmodels/login_view_model.dart';
 import '../views/categories_view.dart';
-import '../views/category_products_view.dart';
+import 'product/category_products_view.dart';
 import 'login_view.dart';
 import 'content/tips/tips_view.dart';
 import 'widgets/main_layout.dart'; 

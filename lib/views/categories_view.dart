@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../viewmodels/category_view_model.dart';
 import '../models/category_model.dart';
-import '../views/category_products_view.dart';
+import 'product/category_products_view.dart';
 
 class CategoriesView extends StatelessWidget {
   const CategoriesView({super.key});

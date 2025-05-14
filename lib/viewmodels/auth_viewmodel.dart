@@ -1,15 +1,16 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/api_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final ApiService _apiService;
-  
+
   // Auth state
   UserModel? _currentUser;
-  bool _isAuthLoading = false; // Corrected variable name
+  bool _isAuthLoading = false;
   String? _authError;
-  
+
   // Registration state
   bool _isRegisterLoading = false;
   bool _isRegisterSuccess = false;
@@ -20,33 +21,36 @@ class AuthViewModel extends ChangeNotifier {
   // Getters
   UserModel? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
-  
-  // Auth getters
-  bool get isAuthLoading => _isAuthLoading; // Fixed getter
+
+  // Auth state getters
+  bool get isAuthLoading => _isAuthLoading;
   String? get authError => _authError;
-  
-  // Registration getters
+
+  // Registration state getters
   bool get isRegisterLoading => _isRegisterLoading;
   bool get isRegisterSuccess => _isRegisterSuccess;
   String? get registerError => _registerError;
 
   // Login method
-  Future<void> login(String email, String password) async {
-    _isAuthLoading = true; // Fixed variable name
-    _authError = null;
-    notifyListeners();
+Future<bool> login(String email, String password, BuildContext context) async {
+  _isAuthLoading = true;
+  _authError = null;
+  notifyListeners();
 
-// TODO: Implement actual login API call
-    try {
-      _currentUser = UserModel(name: "Demo User", email: email);
-    } catch (e) {
-      _authError = e.toString();
-      rethrow;
-    } finally {
-      _isAuthLoading = false; // Fixed variable name
-      notifyListeners();
-    }
+  try {
+    final user = await _apiService.login(email: email, password: password, context: context); // Corrected here
+    _currentUser = user;
+    return true; // Success
+  } catch (e) {
+    _authError = e.toString();
+    _currentUser = null;
+    return false; // Failure
+  } finally {
+    _isAuthLoading = false;
+    notifyListeners();
   }
+}
+
 
   // Register method
   Future<void> register({
@@ -60,11 +64,13 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _currentUser = await _apiService.register(
+      // Call the registration API
+      final user = await _apiService.register(
         name: name,
         email: email,
         password: password,
       );
+      _currentUser = user;
       _isRegisterSuccess = true;
     } catch (e) {
       _registerError = e.toString();
@@ -76,8 +82,16 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
+  // Logout method
   void logout() {
     _currentUser = null;
+    // Optionally, clear the session from local storage (e.g., SharedPreferences)
     notifyListeners();
+  }
+
+  // Optionally, you can add session management here, like checking if the user is already logged in
+  Future<void> checkSession() async {
+    // Check if there is an active session (e.g., stored token or user data)
+    // If yes, fetch user details and set _currentUser
   }
 }

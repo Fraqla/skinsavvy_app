@@ -10,12 +10,12 @@ class LoginViewModel extends ChangeNotifier {
   UserModel? _user;
   UserModel? get user => _user;
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password, BuildContext context) async {
   _isLoading = true;
   notifyListeners();
 
   try {
-    final loggedInUser = await ApiService().login(email: email, password: password);
+    final loggedInUser = await ApiService().login(email: email, password: password, context: context);
 
     _isLoading = false;
     _user = loggedInUser;

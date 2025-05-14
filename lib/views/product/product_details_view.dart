@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
-import '../models/product_model.dart';
+import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/views/product/wishlist_view.dart';
+import '../../models/product_model.dart';
+import '../../services/auth_provider.dart';
+import '../../services/api_service.dart';
+import '../../views/login_view.dart'; // Assuming this is the Login view you mentioned
 
 class ProductDetailsView extends StatelessWidget {
   final Product product;
 
-  const ProductDetailsView ({super.key, required this.product});
+  const ProductDetailsView({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +19,16 @@ class ProductDetailsView extends StatelessWidget {
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.favorite_border),
+                 onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WishlistView()),
+                );
+  })
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: Hero(
                 tag: 'product-${product.id}',
@@ -29,12 +44,6 @@ class ProductDetailsView extends StatelessWidget {
                 ),
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.favorite_border),
-                onPressed: () {},
-              ),
-            ],
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -58,7 +67,6 @@ class ProductDetailsView extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-
                   // Action Buttons
                   Row(
                     children: [
@@ -84,7 +92,6 @@ class ProductDetailsView extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-
                   // Description Section
                   _buildSectionTitle('Description'),
                   Text(
@@ -92,7 +99,6 @@ class ProductDetailsView extends StatelessWidget {
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
                   const SizedBox(height: 24),
-
                   // Ingredients Section
                   _buildSectionTitle('Ingredients'),
                   Text(
@@ -100,7 +106,6 @@ class ProductDetailsView extends StatelessWidget {
                     style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
                   const SizedBox(height: 24),
-
                   // Effects Section
                   Row(
                     children: [
@@ -132,12 +137,11 @@ class ProductDetailsView extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 24),
-
-                  // Buy Now Button
+                  // Add to Wishlist Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () => addToWishlist(product, context),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).colorScheme.primary,
                         foregroundColor: Colors.white,
@@ -147,7 +151,7 @@ class ProductDetailsView extends StatelessWidget {
                         ),
                       ),
                       child: const Text(
-                        'BUY NOW',
+                        'ADD TO WISHLIST',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -155,6 +159,7 @@ class ProductDetailsView extends StatelessWidget {
                       ),
                     ),
                   ),
+                  
                 ],
               ),
             ),
@@ -211,8 +216,8 @@ class ProductDetailsView extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  title.contains('Positive') 
-                      ? Icons.thumb_up 
+                  title.contains('Positive')
+                      ? Icons.thumb_up
                       : Icons.thumb_down,
                   color: iconColor,
                 ),
@@ -252,5 +257,61 @@ class ProductDetailsView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void addToWishlist(Product product, BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+
+    // Check if the user is logged in
+    if (authService.userId == null) {
+      // User is not logged in, prompt to log in
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Please log in'),
+            content: const Text(
+                'You need to be logged in to add items to the wishlist.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LoginView()),
+                  );
+                },
+                child: const Text('Log in'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('Cancel'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // User is logged in, add the product to the wishlist
+      ApiService()
+          .addToWishlist(authService.userId!, product, context)
+          .then((response) {
+        if (response.statusCode != 200) {
+          // Check the response status
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Product added to wishlist')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to add product to wishlist')),
+          );
+        }
+      }).catchError((e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error adding product to wishlist')),
+        );
+      });
+    }
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import '../models/product_model.dart';
+import '../../services/api_service.dart';
+import '../../models/product_model.dart';
 import 'product_details_view.dart';
 
 class CategoryProductsView extends StatefulWidget {
