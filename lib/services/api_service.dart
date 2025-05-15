@@ -122,22 +122,31 @@ class ApiService {
   }
 
   Future<List<Product>> getProductsByCategory(int categoryId) async {
-    final response =
-        await http.get(Uri.parse('$baseUrl/products?category_id=$categoryId'));
-
-    if (response.statusCode == 200) {
-      // Decode the response body
-      final Map<String, dynamic> data = jsonDecode(response.body);
-
-      // Access the 'data' field which contains the products
-      final List<dynamic> productsData = data['data'];
-
-      // Return a list of products by mapping the response to Product.fromJson
-      return productsData.map((json) => Product.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load products by category');
-    }
+  final response = await http.get(Uri.parse('$baseUrl/products?category_id=$categoryId'));
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    final List<dynamic> productsData = data['data'];
+    return productsData.map((json) => Product.fromJson(json)).toList();
+  } else {
+    throw Exception('Failed to load products by category');
   }
+}
+
+Future<List<Product>> getAllProducts() async {
+  final response = await http.get(Uri.parse('$baseUrl/products'));
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = jsonDecode(response.body);
+    final List<dynamic> productsData = data['data'];
+    return productsData.map((json) => Product.fromJson(json)).toList();
+  } else {
+    throw Exception('Failed to load all products');
+  }
+}
+
+
+
+
+
 
   Future<List<Tip>> getTips() async {
     final response = await http.get(Uri.parse('$baseUrl/tips'));

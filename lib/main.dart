@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import 'package:skinsavvy_app/services/auth_provider.dart';
+import 'package:skinsavvy_app/viewmodels/compare_product_view_model.dart';
 import 'package:skinsavvy_app/views/content/promotion/promotion_detail_view.dart';
 import 'package:skinsavvy_app/viewmodels/login_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/category_view_model.dart';
@@ -25,6 +27,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: authService),
+        Provider<ApiService>(create: (_) => ApiService()),
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
         ChangeNotifierProvider(create: (_) => CategoryViewModel()),
         ChangeNotifierProvider(create: (_) => ProductViewModel()),  
@@ -34,7 +37,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => IngredientViewModel()),
         ChangeNotifierProvider(create: (_) => PromotionViewModel()),
         ChangeNotifierProvider(create: (_) => WishlistViewModel()),
+        ChangeNotifierProvider(create: (_) => CompareProductViewModel()),
         ChangeNotifierProvider(create: (context) => SkinQuizViewModel(context)), 
+        
       ],
       child: const MyApp(),
     ),
