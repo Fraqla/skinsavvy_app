@@ -9,6 +9,7 @@ import '../../viewmodels/wishlist_view_model.dart';
 import '../../views/login_view.dart';
 import '../../views/product/compare_product_view.dart';
 import '../../views/product/wishlist_view.dart';
+import '../../views/product/review_product_view.dart';
 
 class ProductDetailsView extends StatelessWidget {
   final Product product;
@@ -138,7 +139,12 @@ class ProductDetailsView extends StatelessWidget {
             icon: Icons.reviews,
             label: 'Reviews',
             onPressed: () {
-              // Future: Add review logic
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ReviewView(productId: product.id),
+                ),
+              );
             },
           ),
         ),

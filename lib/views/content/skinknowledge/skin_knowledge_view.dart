@@ -84,8 +84,7 @@ class _SkinKnowledgeViewState extends State<SkinKnowledgeView> {
                   const SizedBox(height: 8),
                   const Text(
                       'Learn about different skin types and find the best care routine',
-                      style: TextStyle(
-                          fontSize: 14, color: Color(0xFF666666))),
+                      style: TextStyle(fontSize: 14, color: Color(0xFF666666))),
                   const SizedBox(height: 24),
                   Expanded(
                     child: ListView.separated(
@@ -133,16 +132,15 @@ class _SkinTypeCard extends StatelessWidget {
         },
         contentPadding: const EdgeInsets.all(16.0),
         leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8.0),
-          child: Image.network(
-            skinType.image,
-            width: 80,
-            height: 80,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) =>
-                const Icon(Icons.broken_image, size: 40, color: Colors.grey),
-          ),
-        ),
+            borderRadius: BorderRadius.circular(8.0),
+            child: Image.network(
+              'http://localhost:8000/knowledge-image/${skinType.image!.split('/').last}',
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+            )),
         title: Text(
           skinType.skinType,
           style: const TextStyle(

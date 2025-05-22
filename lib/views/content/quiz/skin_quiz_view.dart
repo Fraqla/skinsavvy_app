@@ -1,6 +1,7 @@
 import 'dart:convert'; // To decode JSON data
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/views/login_view.dart';
 import '../../../viewmodels/skin_quiz_view_model.dart';
 
 class SkinQuizView extends StatefulWidget {
@@ -14,10 +15,15 @@ class _SkinQuizViewState extends State<SkinQuizView> {
   @override
   void initState() {
     super.initState();
-    // Fetch skin quizzes when the view loads
-    Future.microtask(() =>
-        Provider.of<SkinQuizViewModel>(context, listen: false)
-            .fetchSkinQuizzes());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final viewModel = Provider.of<SkinQuizViewModel>(context, listen: false);
+
+      await viewModel.checkAuthentication();
+
+      if (viewModel.isAuthenticated) {
+        await viewModel.fetchSkinQuizzes(); // <- Ensure it runs only after auth
+      }
+    });
   }
 
   @override
@@ -26,6 +32,10 @@ class _SkinQuizViewState extends State<SkinQuizView> {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
+    // Show login prompt if not authenticated
+    if (!viewModel.isAuthenticated) {
+      return _buildLoginPrompt(context, viewModel, theme, colors);
+    }
     // If result is already available, show the result screen
     if (viewModel.skinTypeResult != null) {
       return _buildResultScreen(viewModel, theme, colors);
@@ -158,6 +168,67 @@ class _SkinQuizViewState extends State<SkinQuizView> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoginPrompt(BuildContext context, SkinQuizViewModel viewModel,
+      ThemeData theme, ColorScheme colors) {
+    return Scaffold(
+      backgroundColor: colors.surface,
+      appBar: AppBar(
+        title: const Text('Skin Type Quiz'),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: colors.surface,
+        foregroundColor: colors.onSurface,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock, size: 48, color: colors.primary),
+              const SizedBox(height: 24),
+              Text(
+                'Login Required',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'You need to login to take the skin type quiz',
+                style: theme.textTheme.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginView()),
+                  ).then((_) async {
+                    await viewModel.checkAuthentication();
+                    if (viewModel.isAuthenticated) {
+                      await viewModel.fetchSkinQuizzes();
+                      setState(
+                          () {}); // Rebuild the widget to reflect the new state
+                    }
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                ),
+                child: const Text('Login Now'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/skin_quiz_model.dart';
 import '../services/api_service.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +13,8 @@ class SkinQuizViewModel extends ChangeNotifier {
   String? _error;
   String? _skinTypeResult;
   int _totalScore = 0;
+  bool _isAuthenticated = false;
+  bool get isAuthenticated => _isAuthenticated;
 
   SkinQuizViewModel(BuildContext context) : _apiService = ApiService() {
     _apiService.setContext(context);
@@ -27,6 +30,11 @@ class SkinQuizViewModel extends ChangeNotifier {
           ? _skinQuizzes[_currentQuestionIndex]
           : null;
 
+Future<void> checkAuthentication() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isAuthenticated = prefs.getString('authToken') != null;
+    notifyListeners();
+  }
 Future<void> fetchSkinQuizzes() async {
   _isLoading = true;
   notifyListeners();

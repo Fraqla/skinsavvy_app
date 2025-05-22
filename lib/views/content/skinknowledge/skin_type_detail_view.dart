@@ -20,7 +20,7 @@ class SkinTypeDetailView extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
-                skinInfo.image,
+                'http://localhost:8000/knowledge-image/${skinInfo.image!.split('/').last}',
                 height: 200,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) =>

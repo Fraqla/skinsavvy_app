@@ -15,6 +15,7 @@ import 'package:skinsavvy_app/viewmodels/ingredient_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/promotion_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/skin_quiz_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/wishlist_view_model.dart';
+import 'package:skinsavvy_app/viewmodels/review_view_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PromotionViewModel()),
         ChangeNotifierProvider(create: (_) => WishlistViewModel()),
         ChangeNotifierProvider(create: (_) => CompareProductViewModel()),
+        ChangeNotifierProvider(create: (_) => ReviewViewModel()),
         ChangeNotifierProvider(create: (context) => SkinQuizViewModel(context)), 
         
       ],

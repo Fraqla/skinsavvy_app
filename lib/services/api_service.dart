@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart'; // Add this import
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skinsavvy_app/models/category_model.dart' as models;
+import 'package:skinsavvy_app/models/review_model.dart';
 import '../models/ingredient_model.dart';
 import 'package:skinsavvy_app/models/user_model.dart';
 import 'package:skinsavvy_app/models/product_model.dart';
@@ -14,6 +15,7 @@ import '../models/prohibited_product_model.dart';
 import '../models/promotion_model.dart';
 import '../models/skin_quiz_model.dart';
 import '../models/wishlist_model.dart';
+import '../models/review_model.dart';
 import 'auth_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -122,31 +124,27 @@ class ApiService {
   }
 
   Future<List<Product>> getProductsByCategory(int categoryId) async {
-  final response = await http.get(Uri.parse('$baseUrl/products?category_id=$categoryId'));
-  if (response.statusCode == 200) {
-    final Map<String, dynamic> data = jsonDecode(response.body);
-    final List<dynamic> productsData = data['data'];
-    return productsData.map((json) => Product.fromJson(json)).toList();
-  } else {
-    throw Exception('Failed to load products by category');
+    final response =
+        await http.get(Uri.parse('$baseUrl/products?category_id=$categoryId'));
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      final List<dynamic> productsData = data['data'];
+      return productsData.map((json) => Product.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load products by category');
+    }
   }
-}
 
-Future<List<Product>> getAllProducts() async {
-  final response = await http.get(Uri.parse('$baseUrl/products'));
-  if (response.statusCode == 200) {
-    final Map<String, dynamic> data = jsonDecode(response.body);
-    final List<dynamic> productsData = data['data'];
-    return productsData.map((json) => Product.fromJson(json)).toList();
-  } else {
-    throw Exception('Failed to load all products');
+  Future<List<Product>> getAllProducts() async {
+    final response = await http.get(Uri.parse('$baseUrl/products'));
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      final List<dynamic> productsData = data['data'];
+      return productsData.map((json) => Product.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load all products');
+    }
   }
-}
-
-
-
-
-
 
   Future<List<Tip>> getTips() async {
     final response = await http.get(Uri.parse('$baseUrl/tips'));
@@ -241,70 +239,122 @@ Future<List<Product>> getAllProducts() async {
     }
   }
 
-Future<http.Response> addToWishlist(Product product) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('authToken');
-  final userId = prefs.getString('userId');
+  Future<http.Response> addToWishlist(Product product) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+    final userId = prefs.getString('userId');
 
-  if (token == null || userId == null) {
-    throw Exception('User not authenticated');
+    if (token == null || userId == null) {
+      throw Exception('User not authenticated');
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/wishlist'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'product_id': product.id,
+        'user_id': userId,
+      }),
+    );
+
+    return response;
   }
 
-  final response = await http.post(
-    Uri.parse('$baseUrl/wishlist'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-    body: json.encode({
-      'product_id': product.id,
-      'user_id': userId,
-    }),
-  );
+  Future<List<WishlistItem>> getUserWishlist() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
 
-  return response;
-}
+    final response = await http.get(
+      Uri.parse('$baseUrl/wishlist'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
 
+    // Print the raw response body to see what the server is returning
+    print('Response Body: ${response.body}');
 
-
-Future<List<WishlistItem>> getUserWishlist() async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('authToken');
-
-  final response = await http.get(
-    Uri.parse('$baseUrl/wishlist'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Accept': 'application/json',
-    },
-  );
-
-  // Print the raw response body to see what the server is returning
-  print('Response Body: ${response.body}');
-  
-  if (response.statusCode == 200) {
-    final decoded = jsonDecode(response.body);
-    return (decoded as List)
-        .map((item) => WishlistItem.fromJson(item))
-        .toList();
-  } else {
-    throw Exception("Failed to fetch wishlist: ${response.body}");
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      return (decoded as List)
+          .map((item) => WishlistItem.fromJson(item))
+          .toList();
+    } else {
+      throw Exception("Failed to fetch wishlist: ${response.body}");
+    }
   }
-}
 
 // Remove an item from the wishlist
-Future<http.Response> removeFromWishlist(String wishlistItemId, String productId) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('authToken');
+  Future<http.Response> removeFromWishlist(
+      String wishlistItemId, String productId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
 
-  return await http.delete(
-    Uri.parse('$baseUrl/wishlist/$wishlistItemId'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Accept': 'application/json',
-    },
-  );
-}
+    return await http.delete(
+      Uri.parse('$baseUrl/wishlist/$wishlistItemId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+  }
+
+  Future<List<Review>> getReviews(int productId) async {
+    final res = await http.get(Uri.parse('$baseUrl/reviews/$productId'));
+    if (res.statusCode == 200) {
+      final List data = json.decode(res.body);
+      return data.map((json) => Review.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load reviews');
+    }
+  }
+
+  Future<void> addReview(
+    int productId,
+    String comment,
+    double rating, [
+    File? photo,
+    Uint8List? webImage,
+  ]) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+
+    if (token == null) {
+      throw Exception('User not authenticated');
+    }
+
+    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/reviews'));
+    request.headers['Authorization'] = 'Bearer $token';
+
+    request.fields['product_id'] = productId.toString();
+    request.fields['review'] = comment;
+    request.fields['rating'] = rating.toString();
+
+    if (photo != null) {
+      request.files.add(await http.MultipartFile.fromPath('photo', photo.path));
+    } else if (webImage != null) {
+      request.files.add(http.MultipartFile.fromBytes(
+        'photo',
+        webImage,
+        filename: 'review_image.jpg',
+      ));
+    }
+
+    final response = await request.send();
+    final respStr = await response.stream.bytesToString();
+    final responseData = jsonDecode(respStr);
+
+    if (response.statusCode == 201) {
+      return; // Success case
+    } else {
+      throw Exception(
+          'Failed to add review: ${responseData['message'] ?? 'Unknown error'}');
+    }
+  }
 
   Future<Map<String, String>> _getHeaders({bool withAuth = false}) async {
     final headers = {
