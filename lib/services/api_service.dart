@@ -4,6 +4,7 @@ import 'package:flutter/material.dart'; // Add this import
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skinsavvy_app/models/category_model.dart' as models;
 import 'package:skinsavvy_app/models/review_model.dart';
+import 'package:skinsavvy_app/models/user_allergy_model.dart';
 import '../models/ingredient_model.dart';
 import 'package:skinsavvy_app/models/user_model.dart';
 import 'package:skinsavvy_app/models/product_model.dart';
@@ -356,6 +357,76 @@ class ApiService {
     }
   }
 
+Future<List<UserAllergy>> getUserAllergies() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('authToken');
+  
+  if (token == null) throw Exception('Not authenticated');
+
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/user-allergies'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      if (data.isEmpty) return []; // Handle empty response
+      return data.map((json) => UserAllergy.fromJson(json)).toList();
+    } else {
+      final errorBody = jsonDecode(response.body);
+      final errorMsg = errorBody['message'] ?? 'Failed to load allergies';
+      throw Exception('$errorMsg (${response.statusCode})');
+    }
+  } on FormatException {
+    throw Exception('Invalid server response format');
+  } catch (e) {
+    throw Exception('Network error: ${e.toString()}');
+  }
+}
+
+Future<UserAllergy> addUserAllergy(String ingredient) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('authToken');
+  
+  if (token == null) throw Exception('Not authenticated');
+
+  final response = await http.post(
+    Uri.parse('$baseUrl/user-allergies'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: jsonEncode({'ingredient_name': ingredient}),
+  );
+
+  if (response.statusCode == 201) {
+    return UserAllergy.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to add allergy: ${response.statusCode}');
+  }
+}
+
+Future<void> removeUserAllergy(String ingredient) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('authToken');
+  
+  if (token == null) throw Exception('Not authenticated');
+
+  final response = await http.delete(
+    Uri.parse('$baseUrl/user-allergies/${Uri.encodeComponent(ingredient)}'),
+    headers: {
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception('Failed to remove allergy: ${response.statusCode}');
+  }
+}
   Future<Map<String, String>> _getHeaders({bool withAuth = false}) async {
     final headers = {
       'Content-Type': 'application/json',

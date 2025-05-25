@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:skinsavvy_app/services/api_service.dart';
 import 'package:skinsavvy_app/services/auth_provider.dart';
 import 'package:skinsavvy_app/viewmodels/compare_product_view_model.dart';
-import 'package:skinsavvy_app/views/content/promotion/promotion_detail_view.dart';
+import 'package:skinsavvy_app/viewmodels/user_allergies_viewmodel.dart';
 import 'package:skinsavvy_app/viewmodels/login_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/category_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/product_view_model.dart';
@@ -16,6 +16,7 @@ import 'package:skinsavvy_app/viewmodels/promotion_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/skin_quiz_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/wishlist_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/review_view_model.dart';
+import 'package:skinsavvy_app/viewmodels/user_allergies_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +41,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => WishlistViewModel()),
         ChangeNotifierProvider(create: (_) => CompareProductViewModel()),
         ChangeNotifierProvider(create: (_) => ReviewViewModel()),
+        ChangeNotifierProvider(create: (context) => UserAllergiesViewModel(Provider.of<ApiService>(context, listen: false))),
         ChangeNotifierProvider(create: (context) => SkinQuizViewModel(context)), 
         
       ],
