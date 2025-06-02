@@ -202,43 +202,66 @@ class ApiService {
   }
 
   Future<List<SkinQuizModel>> getSkinQuizzes() async {
-    final response = await http.get(Uri.parse('$baseUrl/skin-quizzes'));
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((e) => SkinQuizModel.fromJson(e)).toList();
-    } else {
-      throw Exception('Failed to load quizzes');
-    }
-  }
-
-  Future<String> submitSkinQuizAnswers(
-      List<Map<String, dynamic>> answers) async {
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/submit-skin-quiz'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'answers': answers,
-        }),
-      );
+      final response = await http.get(Uri.parse('$baseUrl/skin-quizzes'));
 
-      // Check if the response status code is successful
       if (response.statusCode == 200) {
-        // Parse the response JSON and extract 'skin_type'
-        final data = json.decode(response.body);
-        return data['skin_type'] ??
-            'unknown'; // Return 'unknown' if skin_type is not found
+        final List<dynamic> data = json.decode(response.body);
+
+        return data.map((e) {
+          try {
+            return SkinQuizModel.fromJson(e);
+          } catch (innerError) {
+            print('Failed to parse quiz item: $e');
+            print('Error: $innerError');
+            throw Exception('Invalid quiz format.');
+          }
+        }).toList();
       } else {
-        // Handle the case where the server responds with an error status
         throw Exception(
-            'Failed to submit answers. Status code: ${response.statusCode}');
+            'Failed to load quizzes. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      // Catch any errors (e.g., network issues) and rethrow or log them
-      throw Exception('Failed to submit answers. Error: $e');
+      print('Error in getSkinQuizzes: $e');
+      rethrow;
     }
   }
+
+Future<Map<String, dynamic>> submitSkinQuizAnswers(
+    List<Map<String, dynamic>> answers, String token) async {
+  print('Submitting answers: ${jsonEncode(answers)}');
+
+  try {
+    final response = await http.post(
+      Uri.parse('http://localhost:8000/api/skin-quizzes/submit'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'answers': answers}),
+    );
+
+    print('Response: ${response.statusCode} ${response.body}');
+
+    if (response.statusCode == 200) {
+      final responseJson = jsonDecode(response.body);
+      print('User ID: ${responseJson['user_id']}');
+      print('Skin Type: ${responseJson['skin_type']}');
+      print('Total Score: ${responseJson['total_score']}');
+
+      print('Quiz submitted successfully');
+
+      return responseJson; // ✅ Return the response to the caller
+    } else {
+      print('Failed to submit quiz: ${response.statusCode} ${response.body}');
+      throw Exception('Failed to submit quiz: ${response.body}');
+    }
+  } catch (e) {
+    print('Error submitting quiz: $e');
+    rethrow;
+  }
+}
+
 
   Future<http.Response> addToWishlist(Product product) async {
     final prefs = await SharedPreferences.getInstance();
@@ -357,76 +380,77 @@ class ApiService {
     }
   }
 
-Future<List<UserAllergy>> getUserAllergies() async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('authToken');
-  
-  if (token == null) throw Exception('Not authenticated');
+  Future<List<UserAllergy>> getUserAllergies() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
 
-  try {
-    final response = await http.get(
+    if (token == null) throw Exception('Not authenticated');
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/user-allergies'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        if (data.isEmpty) return []; // Handle empty response
+        return data.map((json) => UserAllergy.fromJson(json)).toList();
+      } else {
+        final errorBody = jsonDecode(response.body);
+        final errorMsg = errorBody['message'] ?? 'Failed to load allergies';
+        throw Exception('$errorMsg (${response.statusCode})');
+      }
+    } on FormatException {
+      throw Exception('Invalid server response format');
+    } catch (e) {
+      throw Exception('Network error: ${e.toString()}');
+    }
+  }
+
+  Future<UserAllergy> addUserAllergy(String ingredient) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+
+    if (token == null) throw Exception('Not authenticated');
+
+    final response = await http.post(
       Uri.parse('$baseUrl/user-allergies'),
       headers: {
         'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'ingredient_name': ingredient}),
+    );
+
+    if (response.statusCode == 201) {
+      return UserAllergy.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to add allergy: ${response.statusCode}');
+    }
+  }
+
+  Future<void> removeUserAllergy(String ingredient) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+
+    if (token == null) throw Exception('Not authenticated');
+
+    final response = await http.delete(
+      Uri.parse('$baseUrl/user-allergies/${Uri.encodeComponent(ingredient)}'),
+      headers: {
+        'Authorization': 'Bearer $token',
       },
     );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      if (data.isEmpty) return []; // Handle empty response
-      return data.map((json) => UserAllergy.fromJson(json)).toList();
-    } else {
-      final errorBody = jsonDecode(response.body);
-      final errorMsg = errorBody['message'] ?? 'Failed to load allergies';
-      throw Exception('$errorMsg (${response.statusCode})');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to remove allergy: ${response.statusCode}');
     }
-  } on FormatException {
-    throw Exception('Invalid server response format');
-  } catch (e) {
-    throw Exception('Network error: ${e.toString()}');
   }
-}
 
-Future<UserAllergy> addUserAllergy(String ingredient) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('authToken');
-  
-  if (token == null) throw Exception('Not authenticated');
-
-  final response = await http.post(
-    Uri.parse('$baseUrl/user-allergies'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-    body: jsonEncode({'ingredient_name': ingredient}),
-  );
-
-  if (response.statusCode == 201) {
-    return UserAllergy.fromJson(jsonDecode(response.body));
-  } else {
-    throw Exception('Failed to add allergy: ${response.statusCode}');
-  }
-}
-
-Future<void> removeUserAllergy(String ingredient) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('authToken');
-  
-  if (token == null) throw Exception('Not authenticated');
-
-  final response = await http.delete(
-    Uri.parse('$baseUrl/user-allergies/${Uri.encodeComponent(ingredient)}'),
-    headers: {
-      'Authorization': 'Bearer $token',
-    },
-  );
-
-  if (response.statusCode != 200) {
-    throw Exception('Failed to remove allergy: ${response.statusCode}');
-  }
-}
   Future<Map<String, String>> _getHeaders({bool withAuth = false}) async {
     final headers = {
       'Content-Type': 'application/json',
