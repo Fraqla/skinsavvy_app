@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:skinsavvy_app/views/profile_view.dart';
 import '../models/category_model.dart';
 import '../models/tips_model.dart';
 import '../services/api_service.dart';
@@ -38,7 +39,7 @@ class _LandingViewState extends State<LandingView> {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final categories = await apiService.getCategories();
-      
+
       if (mounted) {
         setState(() {
           _categories = categories;
@@ -60,7 +61,7 @@ class _LandingViewState extends State<LandingView> {
     try {
       final apiService = Provider.of<ApiService>(context, listen: false);
       final tips = await apiService.getTips();
-      
+
       if (mounted) {
         setState(() {
           _tips = tips;
@@ -112,10 +113,13 @@ class _LandingViewState extends State<LandingView> {
               ),
               child: (category.imageUrl != null && category.imageUrl.isNotEmpty)
                   ? CachedNetworkImage(
-                      imageUrl: "http://localhost:8000/category-image/${category.imageUrl.split('/').last}",
+                      imageUrl:
+                          "http://localhost:8000/category-image/${category.imageUrl.split('/').last}",
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                      errorWidget: (context, url, error) => const Icon(Icons.image_not_supported),
+                      placeholder: (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
+                      errorWidget: (context, url, error) =>
+                          const Icon(Icons.image_not_supported),
                     )
                   : const Center(child: Icon(Icons.image_not_supported)),
             ),
@@ -172,7 +176,8 @@ class _LandingViewState extends State<LandingView> {
                     MaterialPageRoute(builder: (_) => const TipsView()),
                   );
                 },
-                child: const Text('See all', style: TextStyle(color: Colors.pink)),
+                child:
+                    const Text('See all', style: TextStyle(color: Colors.pink)),
               ),
             ],
           ),
@@ -216,12 +221,15 @@ class _LandingViewState extends State<LandingView> {
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: CachedNetworkImage(
-              imageUrl: "http://localhost:8000/tip-image/${tip.imageUrl.split('/').last}",
+              imageUrl:
+                  "http://localhost:8000/tip-image/${tip.imageUrl.split('/').last}",
               height: 80,
               width: double.infinity,
               fit: BoxFit.cover,
-              placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-              errorWidget: (context, url, error) => const Icon(Icons.image_not_supported),
+              placeholder: (context, url) =>
+                  const Center(child: CircularProgressIndicator()),
+              errorWidget: (context, url, error) =>
+                  const Icon(Icons.image_not_supported),
             ),
           ),
           Padding(
@@ -308,7 +316,8 @@ class _LandingViewState extends State<LandingView> {
                     MaterialPageRoute(builder: (_) => const LoginView()),
                   );
                 },
-                child: const Text("Login", style: TextStyle(color: Colors.white)),
+                child:
+                    const Text("Login", style: TextStyle(color: Colors.white)),
               )
             else
               Row(
@@ -318,10 +327,22 @@ class _LandingViewState extends State<LandingView> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const UserAllergiesView()),
+                        MaterialPageRoute(
+                            builder: (_) => const UserAllergiesView()),
                       );
                     },
                     tooltip: 'My Allergies',
+                  ),
+                  // New Profile Icon Button:
+                  IconButton(
+                    icon: const Icon(Icons.person, color: Colors.white),
+                    tooltip: 'Profile',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfilePage()),
+                      );
+                    },
                   ),
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -379,7 +400,8 @@ class _LandingViewState extends State<LandingView> {
                     children: [
                       const Text(
                         'Category',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       GestureDetector(
                         onTap: () {
@@ -390,7 +412,8 @@ class _LandingViewState extends State<LandingView> {
                             ),
                           );
                         },
-                        child: const Text('See all', style: TextStyle(color: Colors.pink)),
+                        child: const Text('See all',
+                            style: TextStyle(color: Colors.pink)),
                       ),
                     ],
                   ),
@@ -402,13 +425,16 @@ class _LandingViewState extends State<LandingView> {
                       : _categoriesError != null
                           ? Center(child: Text(_categoriesError!))
                           : _categories.isEmpty
-                              ? const Center(child: Text('No categories available'))
+                              ? const Center(
+                                  child: Text('No categories available'))
                               : ListView(
                                   scrollDirection: Axis.horizontal,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
                                   children: _categories
                                       .take(4)
-                                      .map((category) => _buildCategoryItem(category))
+                                      .map((category) =>
+                                          _buildCategoryItem(category))
                                       .toList(),
                                 ),
                 ),

@@ -8,7 +8,10 @@ class LoginViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   UserModel? _user;
+  String? _token;
+
   UserModel? get user => _user;
+  String? get token => _token;
 
   Future<bool> login(String email, String password, BuildContext context) async {
   _isLoading = true;
@@ -36,4 +39,25 @@ class LoginViewModel extends ChangeNotifier {
     _user = null;
     notifyListeners();
   }
+
+  Future<void> updateUser({required String name, required String email}) async {
+  if (_token == null || _user == null) throw Exception('User not logged in');
+
+  final updatedUser = UserModel(
+    id: _user!.id,
+    name: name,
+    email: email,
+    skinType: _user!.skinType,
+    // include any other required fields
+  );
+
+  try {
+    final result = await ApiService().updateUserProfile(_token!, updatedUser);
+    _user = result;
+    notifyListeners();
+  } catch (e) {
+    rethrow;
+  }
+}
+
 }

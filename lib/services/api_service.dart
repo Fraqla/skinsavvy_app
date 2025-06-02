@@ -20,6 +20,7 @@ import '../models/review_model.dart';
 import 'auth_provider.dart';
 import 'package:provider/provider.dart';
 
+
 class ApiService {
   late BuildContext _context;
 
@@ -450,6 +451,45 @@ Future<Map<String, dynamic>> submitSkinQuizAnswers(
       throw Exception('Failed to remove allergy: ${response.statusCode}');
     }
   }
+
+Future<UserModel> fetchUserProfile(String token) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/user/profile'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return UserModel.fromJson(data['user'] ?? data); // Handle both wrapped and unwrapped responses
+    } else {
+      throw Exception('Failed to load user profile');
+    }
+}
+
+Future<UserModel> updateUserProfile(String token, UserModel user) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/user/profile'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'name': user.name,
+        'email': user.email,
+        'skin_type': user.skinType?.toJson(),
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return UserModel.fromJson(data['user'] ?? data);
+    } else {
+      throw Exception('Failed to update user profile');
+    }
+}
 
   Future<Map<String, String>> _getHeaders({bool withAuth = false}) async {
     final headers = {
