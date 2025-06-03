@@ -47,7 +47,7 @@ class LoginViewModel extends ChangeNotifier {
     id: _user!.id,
     name: name,
     email: email,
-    skinType: _user!.skinType,
+    userSkinType: _user!.userSkinType,
     // include any other required fields
   );
 

@@ -4,34 +4,35 @@ class UserModel {
   final String id;
   final String name;
   final String email;
-  final UserSkinType? skinType;
+  final UserSkinType? userSkinType;
 
   UserModel({
     required this.id,
     required this.name,
     required this.email,
-    required this.skinType,
+    required this.userSkinType,
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    print('User JSON: $json');
-
-    return UserModel(
-      id: json['id'].toString(),
-      name: json['name'],
-      email: json['email'],
-      skinType: json['skinType'] != null
-        ? UserSkinType.fromJson(json['skinType']) 
-        : null,
-    );
-  }
+factory UserModel.fromJson(Map<String, dynamic> json) {
+  print('Full user JSON response: $json'); // Add this line
+  print('Skin type data: ${json['user_skin_type']}'); // Check the exact key
+  
+  return UserModel(
+    id: json['id'].toString(),
+    name: json['name'],
+    email: json['email'],
+    userSkinType: json['user_skin_type'] != null
+      ? UserSkinType.fromJson(json['user_skin_type'])
+      : null,
+  );
+}
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'name': name,
       'email': email,
-      'skin_type': skinType?.toJson(),
+      'skin_type': userSkinType?.toJson(),
     };
   }
   

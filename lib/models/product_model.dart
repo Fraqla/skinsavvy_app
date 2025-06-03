@@ -5,6 +5,10 @@ class Product {
   final String description;
   final String ingredient;
   final int categoryId;
+  final String? positive; 
+  final String? negative;
+  final String? brand;
+  final String? suitability;
 
   Product({
     required this.id,
@@ -13,6 +17,10 @@ class Product {
     required this.description,
     required this.ingredient,
     required this.categoryId,
+    this.positive,
+    this.negative,
+    this.brand,
+    this.suitability,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -23,6 +31,10 @@ class Product {
       description: json['description'],
       ingredient: json['ingredient'],
       categoryId: json['categoryId'] ?? 0,
+      positive: json['positive'], 
+      negative: json['negative'],
+      brand: json['brand'],
+      suitability: json['suitability'],
     );
   }
 
@@ -33,5 +45,9 @@ class Product {
         'description': description,
         'ingredient': ingredient,
         'categoryId': categoryId,
+        'positive': positive, 
+        'negative': negative,
+        'brand': brand, 
+        'suitability': suitability,
       };
 }

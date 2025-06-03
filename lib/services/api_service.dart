@@ -479,7 +479,7 @@ Future<UserModel> updateUserProfile(String token, UserModel user) async {
       body: json.encode({
         'name': user.name,
         'email': user.email,
-        'skin_type': user.skinType?.toJson(),
+        'skin_type': user.userSkinType?.toJson(),
       }),
     );
 

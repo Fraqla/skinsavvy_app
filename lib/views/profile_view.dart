@@ -24,7 +24,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = Provider.of<LoginViewModel>(context, listen: false).user!;
     _nameController = TextEditingController(text: user.name);
     _emailController = TextEditingController(text: user.email);
-    print('SkinType: ${user.skinType?.skinType}');
+    print('SkinType: ${user.userSkinType?.skinType}');
 
   }
 
@@ -94,7 +94,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     'Skin Type',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text(user.skinType?.skinType ?? 'Not Set'),
+                  subtitle: Text(user.userSkinType?.skinType ?? 'Not Set'),
                   leading: const Icon(Icons.face_retouching_natural, color: Colors.pink),
                 ),
               ),

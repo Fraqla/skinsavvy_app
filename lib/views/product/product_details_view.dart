@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'dart:convert';
 import '../../models/product_model.dart';
 import '../../services/auth_provider.dart';
 import '../../viewmodels/compare_product_view_model.dart';
@@ -29,6 +29,8 @@ class ProductDetailsView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildProductTitle(product.name),
+                  const SizedBox(height: 16),
+                  _buildBrandAndSuitability(),
                   const SizedBox(height: 16),
                   _buildActionButtons(context),
                   const SizedBox(height: 24),
@@ -109,6 +111,57 @@ class ProductDetailsView extends StatelessWidget {
     );
   }
 
+  Widget _buildBrandAndSuitability() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (product.brand != null && product.brand!.isNotEmpty)
+          _buildInfoRow(
+            icon: Icons.branding_watermark,
+            label: 'Brand',
+            value: product.brand!,
+          ),
+        if (product.suitability != null && product.suitability!.isNotEmpty)
+          _buildInfoRow(
+            icon: Icons.people,
+            label: 'Suitable for',
+            value: product.suitability!,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: Colors.grey[600]),
+          const SizedBox(width: 8),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildActionButtons(BuildContext context) {
     return Row(
       children: [
@@ -181,16 +234,28 @@ class ProductDetailsView extends StatelessWidget {
   }
 
   Widget _buildEffectsSection() {
+    List<String> safeDecode(String? jsonStr) {
+      try {
+        if (jsonStr == null || jsonStr.isEmpty) return [];
+        final decoded = jsonDecode(jsonStr);
+        if (decoded is List) {
+          return decoded.map((e) => e.toString()).toList();
+        }
+        return [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    final positiveEffects = safeDecode(product.positive);
+    final negativeEffects = safeDecode(product.negative);
+
     return Row(
       children: [
         Expanded(
           child: _buildEffectCard(
             title: 'Positive Effects',
-            effects: const [
-              'Hydrates skin',
-              'Reduces wrinkles',
-              'Brightens complexion'
-            ],
+            effects: positiveEffects,
             color: Colors.green[100],
             iconColor: Colors.green,
           ),
@@ -199,11 +264,7 @@ class ProductDetailsView extends StatelessWidget {
         Expanded(
           child: _buildEffectCard(
             title: 'Negative Effects',
-            effects: const [
-              'May cause dryness',
-              'Possible irritation',
-              'Not for sensitive skin'
-            ],
+            effects: negativeEffects,
             color: Colors.red[100],
             iconColor: Colors.red,
           ),
