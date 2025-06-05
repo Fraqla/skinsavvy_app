@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:skinsavvy_app/views/content/content_view.dart';
 import '../landing_view.dart';
+import 'package:skinsavvy_app/views/chatbot_screen.dart';
 import '../categories_view.dart';
 import '../content/tips/tips_view.dart';
 
@@ -14,13 +15,16 @@ class MainLayout extends StatelessWidget {
     if (index == currentIndex) return;
     switch (index) {
       case 0:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LandingView()));
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => const LandingView()));
         break;
       case 1:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const ContentView()));
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => const ContentView()));
         break;
       case 2:
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const TipsView()));
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (_) => ChatbotScreen()));
         break;
     }
   }
@@ -34,8 +38,9 @@ class MainLayout extends StatelessWidget {
         onTap: (index) => _onTabTapped(context, index),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.content_copy), label: 'Content'),
-          BottomNavigationBarItem(icon: Icon(Icons.lightbulb), label: 'Tips'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.content_copy), label: 'Content'),
+          BottomNavigationBarItem(icon: Icon(Icons.lightbulb), label: 'Chatbot'),
         ],
       ),
     );

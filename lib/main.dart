@@ -17,6 +17,8 @@ import 'package:skinsavvy_app/viewmodels/skin_quiz_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/wishlist_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/review_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/user_allergies_viewmodel.dart';
+import 'viewmodels/chatbot_viewmodel.dart';
+import 'views/chatbot_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,6 +45,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ReviewViewModel()),
         ChangeNotifierProvider(create: (context) => UserAllergiesViewModel(Provider.of<ApiService>(context, listen: false))),
         ChangeNotifierProvider(create: (context) => SkinQuizViewModel(context)), 
+        ChangeNotifierProvider(create: (_) => ChatbotViewModel(), child: const MyApp()),
         
       ],
       child: const MyApp(),
