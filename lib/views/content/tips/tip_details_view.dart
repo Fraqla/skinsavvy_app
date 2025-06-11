@@ -10,42 +10,36 @@ class TipDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: Text(
-          tip.title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                blurRadius: 4.0,
-                color: Colors.black45,
-                offset: Offset(1.0, 1.0),
-          )],
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
-            expandedHeight: 300.0,
+            expandedHeight: 350.0,
             stretch: true,
             flexibleSpace: FlexibleSpaceBar(
+              stretchModes: const [StretchMode.zoomBackground],
               background: Hero(
                 tag: 'tip-image-${tip.id}',
                 child: Image.network(
                   "http://localhost:8000/tip-image/${tip.imageUrl.split('/').last}",
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: Colors.grey[200],
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      ),
+                    );
+                  },
                   errorBuilder: (context, error, stackTrace) => Container(
-                    color: Colors.grey.shade200,
+                    color: Colors.grey[200],
                     child: const Center(
                       child: Icon(
                         Icons.image_not_supported,
@@ -59,45 +53,77 @@ class TipDetailView extends StatelessWidget {
             ),
           ),
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    tip.title,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Quick Tip',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade800,
+                  // Title with decorative underline
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tip.title,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
+                        ),
                       ),
+                      Container(
+                        width: 80,
+                        height: 4,
+                        margin: const EdgeInsets.only(top: 8, bottom: 24),
+                        decoration: BoxDecoration(
+                          color: Colors.deepPurple[200],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  // Quick Tip Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple[50],
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.deepPurple[100]!),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.lightbulb_outline, color: Colors.deepPurple[400], size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Quick Tip',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.deepPurple[800],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
+                  
+                  // Description with improved readability
                   Text(
                     tip.description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
-                      height: 1.6,
-                      color: Colors.black87,
+                      height: 1.7,
+                      color: Colors.grey[800],
                     ),
                   ),
                   const SizedBox(height: 40),
+                  
+                  // Action Buttons
                   _buildActionButtons(context),
                 ],
               ),
@@ -109,40 +135,62 @@ class TipDetailView extends StatelessWidget {
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
+        // Save Button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 18),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-            ),
-            icon: const Icon(Icons.bookmark_border, color: Colors.white),
-            label: const Text(
-              'Save for later',
-              style: TextStyle(color: Colors.white),
+              elevation: 2,
+              shadowColor: Colors.deepPurple.withOpacity(0.3),
             ),
             onPressed: () {},
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.bookmark_border, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Save to Favorites',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.purple,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+        const SizedBox(height: 16),
+        
+        // Share Button
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.deepPurple,
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              side: BorderSide(color: Colors.deepPurple.shade300, width: 1.5),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Colors.purple.shade300),
               ),
             ),
-            icon: const Icon(Icons.share),
-            label: const Text('Share'),
             onPressed: () {},
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.share, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Share this Tip',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
           ),
         ),
       ],

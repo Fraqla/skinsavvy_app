@@ -5,6 +5,7 @@ class Review {
   final int rating;
   final String userName;
   final String? photo;
+  final DateTime? createdAt;
 
   Review({
     required this.id,
@@ -13,6 +14,7 @@ class Review {
     required this.rating,
     required this.userName,
     this.photo,
+    this.createdAt,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,9 @@ class Review {
       rating: json['rating'],
       userName: json['user']['name'] ?? 'Anonymous',
       photo: json['photo'],
+      createdAt: json['createdAt'] != null 
+          ? DateTime.parse(json['createdAt'])
+          : null,
     );
   }
 }

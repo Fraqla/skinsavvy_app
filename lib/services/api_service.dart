@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter/material.dart'; // Add this import
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:skinsavvy_app/models/category_model.dart' as models;
 import 'package:skinsavvy_app/models/review_model.dart';
@@ -16,7 +16,6 @@ import '../models/prohibited_product_model.dart';
 import '../models/promotion_model.dart';
 import '../models/skin_quiz_model.dart';
 import '../models/wishlist_model.dart';
-import '../models/review_model.dart';
 import 'auth_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -179,6 +178,17 @@ class ApiService {
       throw Exception('Failed to load prohibited products');
     }
   }
+
+Future<ProhibitedProductModel> getProhibitedProductById(int id) async {
+  final response = await http.get(Uri.parse('$baseUrl/prohibited-products/$id'));
+
+  if (response.statusCode == 200) {
+    final dynamic data = json.decode(response.body);
+    return ProhibitedProductModel.fromJson(data);
+  } else {
+    throw Exception('Failed to load prohibited product details');
+  }
+}
 
   Future<List<IngredientModel>> getIngredients() async {
     final response = await http.get(Uri.parse('$baseUrl/ingredients'));

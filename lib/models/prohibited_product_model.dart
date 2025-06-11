@@ -4,6 +4,7 @@ class ProhibitedProductModel {
   final String detectedPoison;
   final String effect;
   final String image;
+  final String? imageUrl; 
 
   ProhibitedProductModel({
     required this.id,
@@ -11,6 +12,7 @@ class ProhibitedProductModel {
     required this.detectedPoison,
     required this.effect,
     required this.image,
+    this.imageUrl,
   });
 
   factory ProhibitedProductModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class ProhibitedProductModel {
       detectedPoison: json['detected_poison'],
       effect: json['effect'],
       image: json['image'],
+      imageUrl: json['image_url'],  
     );
   }
 }
