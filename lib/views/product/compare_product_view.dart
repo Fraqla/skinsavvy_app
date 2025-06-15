@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skinsavvy_app/services/api_service.dart';
@@ -12,56 +11,74 @@ class CompareProductView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final compareVM = Provider.of<CompareProductViewModel>(context);
     final products = compareVM.comparedProducts;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Compare Products'),
+        title: const Text('Product Comparison'),
         centerTitle: true,
+        elevation: 0,
         actions: [
           if (products.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.clear_all),
+              icon: const Icon(Icons.delete_outline),
               tooltip: 'Clear all',
               onPressed: () => _showClearConfirmationDialog(context, compareVM),
             ),
         ],
       ),
-      body: products.isEmpty
-          ? _buildEmptyState(context)
-          : _buildComparisonTable(compareVM, products, context, categoryId),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: products.isEmpty
+            ? _buildEmptyState(context)
+            : _buildComparisonTable(compareVM, products, context, categoryId),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddProductDialog(context, compareVM, categoryId),
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.compare_arrows),
         tooltip: 'Add product to compare',
-        backgroundColor: Theme.of(context).primaryColor,
+        backgroundColor: theme.primaryColor,
+        elevation: 4,
       ),
     );
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.compare_arrows,
-              size: 64, color: Theme.of(context).primaryColor.withOpacity(0.5)),
-          const SizedBox(height: 16),
+          Icon(Icons.compare_rounded,
+              size: 80, color: theme.primaryColor.withOpacity(0.3)),
+          const SizedBox(height: 24),
           Text(
-            'No products to compare',
-            style: TextStyle(
-              fontSize: 18,
-              color: Theme.of(context).disabledColor,
+            'No Products to Compare',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: theme.disabledColor,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Tap the + button to add products',
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).disabledColor,
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              'Add products to start comparing their features, ingredients, and benefits.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.disabledColor,
+              ),
             ),
+          ),
+          const SizedBox(height: 24),
+          FilledButton.tonal(
+            onPressed: () => _showAddProductDialog(
+                context,
+                Provider.of<CompareProductViewModel>(context, listen: false),
+                categoryId),
+            child: const Text('Add First Product'),
           ),
         ],
       ),
@@ -74,34 +91,58 @@ class CompareProductView extends StatelessWidget {
     BuildContext context,
     int categoryId,
   ) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(
-            'Comparing ${products.length} products',
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).hintColor,
-              fontWeight: FontWeight.w500,
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline, size: 18, color: theme.hintColor),
+              const SizedBox(width: 8),
+              Text(
+                'Comparing ${products.length} ${products.length == 1 ? 'product' : 'products'}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.hintColor,
+                ),
+              ),
+              const Spacer(),
+              if (compareVM.canAddMoreProducts)
+                TextButton.icon(
+                  onPressed: () =>
+                      _showAddProductDialog(context, compareVM, categoryId),
+                  icon: Icon(Icons.add, size: 18),
+                  label: const Text('Add Another'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: theme.primaryColor,
+                  ),
+                ),
+            ],
           ),
         ),
         Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildAttributeColumn(context),
-                  ...products.map((product) =>
-                      _buildProductColumn(compareVM, product, context)),
-                  if (compareVM.canAddMoreProducts)
-                    _buildAddProductColumn(context, compareVM, categoryId),
-                ],
-              ),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final cardWidth = min(280.0, constraints.maxWidth / 2);
+                return ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _buildAttributeColumn(context, cardWidth),
+                    const SizedBox(width: 12),
+                    ...products.map((product) => Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: _buildProductCard(
+                              compareVM, product, context, cardWidth),
+                        )),
+                    if (compareVM.canAddMoreProducts)
+                      _buildAddProductCard(context, compareVM, categoryId,
+                          width: cardWidth),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -109,181 +150,275 @@ class CompareProductView extends StatelessWidget {
     );
   }
 
-  Widget _buildAttributeColumn(BuildContext context) {
-    return Container(
-      width: 150,
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 120),
-          Divider(color: Colors.grey.shade300),
-          const SizedBox(height: 8),
-          Text('PRODUCT NAME',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).hintColor,
-              )),
-          const SizedBox(height: 16),
-          Text('DESCRIPTION',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).hintColor,
-              )),
-          const SizedBox(height: 16),
-          Text('INGREDIENTS',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).hintColor,
-              )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProductColumn(CompareProductViewModel compareVM, Product product,
-      BuildContext context) {
-    return Container(
-      width: 220,
-      margin: const EdgeInsets.only(left: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Stack(
+  Widget _buildAttributeColumn(BuildContext context, double width) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: width,
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  "http://localhost:8000/product-image/${product.imageUrl.split('/').last}",
-                  height: 220,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    height: 120,
-                    color: Colors.grey.shade200,
-                    child: Center(
-                      child: Icon(Icons.broken_image,
-                          size: 40, color: Colors.grey.shade400),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Material(
-                  color: Colors.white.withOpacity(0.9),
-                  shape: const CircleBorder(),
-                  child: IconButton(
-                    icon: Icon(Icons.close,
-                        size: 18, color: Colors.grey.shade700),
-                    onPressed: () => compareVM.removeProduct(product.id),
-                  ),
-                ),
-              ),
+              const SizedBox(height: 225), // Image height
+              Divider(color: theme.dividerColor.withOpacity(0.3)),
+              const SizedBox(height: 15), // Product name height
+              Text('PRODUCT',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.hintColor,
+                    letterSpacing: 1,
+                  )),
+              const SizedBox(height: 40), // Ingredients height
+              Text('INGREDIENTS',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.hintColor,
+                    letterSpacing: 1,
+                  )),
+              const SizedBox(height: 60), // Suitability height
+              Text('SUITABILITY',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.hintColor,
+                    letterSpacing: 1,
+                  )),
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  product.name,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.titleLarge?.color,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  product.description,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  product.ingredient,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Theme.of(context).textTheme.bodyMedium?.color,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildAddProductColumn(
+  Widget _buildProductCard(CompareProductViewModel compareVM, Product product,
+      BuildContext context, double width) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: width,
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Fixed height image container
+            SizedBox(
+              height: 250,
+              child: Stack(
+                children: [
+                  // Centered image container
+                  Center(
+                    child: ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(12)),
+                      child: SizedBox(
+                        width:
+                            300, // Match the height to maintain square aspect ratio
+                        height: 400,
+                        child: Image.network(
+                          "http://localhost:8000/product-image/${product.imageUrl.split('/').last}",
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: Colors.grey.shade100,
+                            child: Center(
+                              child: Icon(Icons.broken_image,
+                                  size: 40, color: Colors.grey.shade400),
+                            ),
+                          ),
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Material(
+                      color: Colors.white.withOpacity(0.9),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () => compareVM.removeProduct(product.id),
+                        child: Padding(
+                          padding: const EdgeInsets.all(6),
+                          child: Icon(Icons.close,
+                              size: 18, color: Colors.grey.shade700),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (product.brand != null && product.brand!.isNotEmpty)
+                    Positioned(
+                      bottom: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          product.brand!.toUpperCase(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onPrimary,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            // Fixed height content sections
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Product name with fixed height
+                    SizedBox(
+                      height: 48,
+                      child: Text(
+                        product.name,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Ingredients with fixed height
+                    SizedBox(
+                      height: 72,
+                      child: _buildComparisonRow(
+                        context,
+                        value: product.ingredient,
+                        maxLines: 3,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Suitability with fixed height
+                    SizedBox(
+                      height: 32,
+                      child: product.suitability != null &&
+                              product.suitability!.isNotEmpty
+                          ? _buildSuitabilityChip(product.suitability!, context)
+                          : const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildComparisonRow(BuildContext context,
+      {required String value, int maxLines = 1}) {
+    return SizedBox(
+      height: 72,
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Text(
+          value,
+          style: Theme.of(context).textTheme.bodyMedium,
+          maxLines: maxLines,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSuitabilityChip(String suitability, BuildContext context) {
+    final theme = Theme.of(context);
+    final color = suitability.toLowerCase().contains('sensitive')
+        ? Colors.blue
+        : suitability.toLowerCase().contains('dry')
+            ? Colors.orange
+            : suitability.toLowerCase().contains('oily')
+                ? Colors.green
+                : theme.primaryColor;
+
+    return Chip(
+      label: Text(
+        suitability,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: Colors.white,
+        ),
+      ),
+      backgroundColor: color.withOpacity(0.8),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+    );
+  }
+
+  Widget _buildAddProductCard(
     BuildContext context,
     CompareProductViewModel compareVM,
-    int categoryId,
-  ) {
-    return GestureDetector(
-      onTap: () => _showAddProductDialog(context, compareVM, categoryId),
-      child: Container(
-        width: 220,
-        margin: const EdgeInsets.only(left: 12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+    int categoryId, {
+    required double width,
+  }) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: width,
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Theme.of(context).dividerColor.withOpacity(0.5),
+          side: BorderSide(
+            color: theme.dividerColor.withOpacity(0.3),
             width: 1.5,
           ),
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.add_circle_outline,
-                  size: 40, color: Theme.of(context).primaryColor),
-              const SizedBox(height: 8),
-              Text(
-                'Add Product',
-                style: TextStyle(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.w500,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _showAddProductDialog(context, compareVM, categoryId),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_circle_outline,
+                    size: 40, color: theme.primaryColor),
+                const SizedBox(height: 12),
+                Text(
+                  'Add Product',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 4),
+                Text(
+                  'Tap to select',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: theme.hintColor,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -303,148 +438,189 @@ class CompareProductView extends StatelessWidget {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
-              title: const Text('Add Product to Compare'),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        hintText: 'Search products...',
-                        prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
+            return Dialog(
+              insetPadding: const EdgeInsets.all(16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.compare_arrows),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Add Product to Compare',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
                       ),
-                      onChanged: (value) {
-                        setState(() {});
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Flexible(
-                      child: FutureBuilder<List<Product>>(
-                        future: _fetchProducts(context, categoryId: categoryId),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          }
-                          if (snapshot.hasError) {
-                            return Text('Error: ${snapshot.error}');
-                          }
-
-                          final allProducts = snapshot.data ?? [];
-                          final searchTerm =
-                              searchController.text.toLowerCase();
-
-                          // Filter products based on search term
-                          filteredProducts = allProducts.where((product) {
-                            return product.name
-                                    .toLowerCase()
-                                    .contains(searchTerm) ||
-                                product.description
-                                    .toLowerCase()
-                                    .contains(searchTerm);
-                          }).toList();
-
-                          // Remove products already in comparison
-                          filteredProducts.removeWhere((product) =>
-                              compareVM.isProductInComparison(product.id));
-
-                          if (filteredProducts.isEmpty) {
-                            return const Center(
-                                child: Text('No matching products found'));
-                          }
-
-                          return ListView.builder(
-                            shrinkWrap: true,
-                            itemCount: min(filteredProducts.length,5),
-                            itemBuilder: (context, index) {
-                              final product = filteredProducts[index];
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  side: BorderSide(
-                                    color: Theme.of(context).dividerColor,
-                                    width: 0.5,
-                                  ),
-                                ),
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  leading: ClipRRect(
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: Image.network(
-                                      "http://localhost:8000/product-image/${product.imageUrl.split('/').last}",
-                                      width: 48,
-                                      height: 48,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        color: Colors.grey.shade200,
-                                        child: const Icon(Icons.broken_image),
-                                      ),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    product.name,
-                                    style: const TextStyle(fontSize: 14),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: Text(
-                                    product.description,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Theme.of(context).hintColor,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  trailing: IconButton(
-                                    icon: Icon(Icons.add_circle,
-                                        color: Theme.of(context).primaryColor),
-                                    onPressed: () {
-                                      try {
-                                        compareVM.addProduct(product);
-                                        Navigator.pop(context);
-                                      } catch (e) {
-                                        Navigator.pop(context);
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(e.toString()),
-                                            behavior: SnackBarBehavior.floating,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          hintText: 'Search products...',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                        ),
+                        onChanged: (value) => setState(() {}),
+                      ),
+                      const SizedBox(height: 16),
+                      Flexible(
+                        child: FutureBuilder<List<Product>>(
+                          future:
+                              _fetchProducts(context, categoryId: categoryId),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return const Center(
+                                  child: CircularProgressIndicator());
+                            }
+                            if (snapshot.hasError) {
+                              return Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Text(
+                                  'Failed to load products',
+                                  style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                               );
-                            },
-                          );
-                        },
+                            }
+
+                            final allProducts = snapshot.data ?? [];
+                            final searchTerm =
+                                searchController.text.toLowerCase();
+
+                            filteredProducts = allProducts
+                                .where((product) =>
+                                    product.name
+                                        .toLowerCase()
+                                        .contains(searchTerm) ||
+                                    product.description
+                                        .toLowerCase()
+                                        .contains(searchTerm))
+                                .where((product) => !compareVM
+                                    .isProductInComparison(product.id))
+                                .toList();
+
+                            if (filteredProducts.isEmpty) {
+                              return Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.search_off,
+                                        size: 48,
+                                        color: Theme.of(context).hintColor),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      searchTerm.isEmpty
+                                          ? 'No products available'
+                                          : 'No matching products found',
+                                      style:
+                                          Theme.of(context).textTheme.bodyLarge,
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: min(filteredProducts.length, 5),
+                              itemBuilder: (context, index) {
+                                final product = filteredProducts[index];
+                                return _buildProductListItem(
+                                    context, product, compareVM);
+                              },
+                            );
+                          },
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-              ],
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildProductListItem(BuildContext context, Product product,
+      CompareProductViewModel compareVM) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: Theme.of(context).dividerColor.withOpacity(0.2),
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        leading: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            "http://localhost:8000/product-image/${product.imageUrl.split('/').last}",
+            width: 48,
+            height: 48,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              color: Colors.grey.shade200,
+              child: const Icon(Icons.broken_image),
+            ),
+          ),
+        ),
+        title: Text(
+          product.name,
+          style: Theme.of(context).textTheme.bodyLarge,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: FilledButton.tonal(
+          onPressed: () {
+            try {
+              compareVM.addProduct(product);
+              Navigator.pop(context);
+            } catch (e) {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(e.toString()),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              );
+            }
+          },
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(40, 40),
+            padding: EdgeInsets.zero,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: const Icon(Icons.add, size: 20),
+        ),
+      ),
     );
   }
 
@@ -468,9 +644,9 @@ class CompareProductView extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear Comparison'),
+        title: const Text('Clear Comparison?'),
         content: const Text(
-            'Are you sure you want to remove all products from comparison?'),
+            'This will remove all products from the comparison. Do you want to continue?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -481,7 +657,7 @@ class CompareProductView extends StatelessWidget {
               compareVM.clearComparison();
               Navigator.pop(context);
             },
-            child: const Text('Clear', style: TextStyle(color: Colors.red)),
+            child: const Text('Clear All'),
           ),
         ],
       ),

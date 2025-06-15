@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/views/register_view.dart';
 import '../viewmodels/login_view_model.dart';
 
 class LoginView extends StatefulWidget {
@@ -97,8 +98,10 @@ class _LoginViewState extends State<LoginView> {
               const SizedBox(height: 16),
               TextButton(
                 onPressed: () {
-                  // Go to Register Page (if you want)
-                  Navigator.pushNamed(context, "/register");
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const RegisterPage()),
+                  );
                 },
                 child: const Text("Don't have an account? Sign up"),
               )

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:skinsavvy_app/services/api_service.dart';
 import 'package:skinsavvy_app/services/auth_provider.dart';
 import 'package:skinsavvy_app/viewmodels/compare_product_view_model.dart';
+import 'package:skinsavvy_app/viewmodels/register_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/user_allergies_viewmodel.dart';
 import 'package:skinsavvy_app/viewmodels/login_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/category_view_model.dart';
@@ -33,6 +34,7 @@ void main() async {
         ChangeNotifierProvider.value(value: authService),
         Provider<ApiService>(create: (_) => ApiService()),
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
+        ChangeNotifierProvider(create: (_) => RegisterViewModel()),
         ChangeNotifierProvider(create: (_) => CategoryViewModel()),
         ChangeNotifierProvider(create: (_) => ProductViewModel()),  
         ChangeNotifierProvider(create: (_) => TipsViewModel()),

@@ -317,7 +317,7 @@ class _LandingViewState extends State<LandingView> {
                   );
                 },
                 child:
-                    const Text("Login", style: TextStyle(color: Colors.white)),
+                    const Text("Sign In", style: TextStyle(color: Colors.white)),
               )
             else
               Row(
