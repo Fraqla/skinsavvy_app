@@ -166,19 +166,19 @@ class CompareProductView extends StatelessWidget {
             children: [
               const SizedBox(height: 225), // Image height
               Divider(color: theme.dividerColor.withOpacity(0.3)),
-              const SizedBox(height: 15), // Product name height
+              const SizedBox(height: 20), // Product name height
               Text('PRODUCT',
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: theme.hintColor,
                     letterSpacing: 1,
                   )),
-              const SizedBox(height: 40), // Ingredients height
+              const SizedBox(height: 60), // Ingredients height
               Text('INGREDIENTS',
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: theme.hintColor,
                     letterSpacing: 1,
                   )),
-              const SizedBox(height: 60), // Suitability height
+              const SizedBox(height: 70), // Suitability height
               Text('SUITABILITY',
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: theme.hintColor,
@@ -193,6 +193,7 @@ class CompareProductView extends StatelessWidget {
 
   Widget _buildProductCard(CompareProductViewModel compareVM, Product product,
       BuildContext context, double width) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
     final theme = Theme.of(context);
     return SizedBox(
       width: width,
@@ -219,7 +220,7 @@ class CompareProductView extends StatelessWidget {
                             300, // Match the height to maintain square aspect ratio
                         height: 400,
                         child: Image.network(
-                          "http://localhost:8000/product-image/${product.imageUrl.split('/').last}",
+                          "${apiService.baseStorageUrl}/products/${product.imageUrl.split('/').last}",
                           fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => Container(
                             color: Colors.grey.shade100,
@@ -294,28 +295,24 @@ class CompareProductView extends StatelessWidget {
                   children: [
                     // Product name with fixed height
                     SizedBox(
-                      height: 48,
+                      height: 70,
                       child: Text(
                         product.name,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
-                        maxLines: 2,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 20),
 
-                    // Ingredients with fixed height
-                    SizedBox(
-                      height: 72,
-                      child: _buildComparisonRow(
-                        context,
-                        value: product.ingredient,
-                        maxLines: 3,
-                      ),
+                    // Ingredients with scrollable content
+                    _buildComparisonRow(
+                      context,
+                      value: product.ingredient,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 25),
 
                     // Suitability with fixed height
                     SizedBox(
@@ -336,16 +333,27 @@ class CompareProductView extends StatelessWidget {
   }
 
   Widget _buildComparisonRow(BuildContext context,
-      {required String value, int maxLines = 1}) {
-    return SizedBox(
-      height: 72,
+      {required String value}) {
+    final theme = Theme.of(context);
+    return Container(
+      height: 72, // Fixed height to maintain consistent row heights
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: theme.dividerColor.withOpacity(0.1),
+          width: 1,
+        ),
+        borderRadius: BorderRadius.circular(4),
+      ),
       child: SingleChildScrollView(
-        physics: const NeverScrollableScrollPhysics(),
-        child: Text(
-          value,
-          style: Theme.of(context).textTheme.bodyMedium,
-          maxLines: maxLines,
-          overflow: TextOverflow.ellipsis,
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            value.isNotEmpty ? value : 'No ingredients listed',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontSize: 13,
+            ),
+          ),
         ),
       ),
     );
@@ -453,10 +461,10 @@ class CompareProductView extends StatelessWidget {
                       Row(
                         children: [
                           const Icon(Icons.compare_arrows),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           Text(
                             'Add Product to Compare',
-                            style: Theme.of(context).textTheme.titleLarge,
+                            style: Theme.of(context).textTheme.titleSmall,
                           ),
                           const Spacer(),
                           IconButton(
@@ -465,9 +473,10 @@ class CompareProductView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 10),
                       TextField(
                         controller: searchController,
+                        style: const TextStyle(fontSize: 6),
                         decoration: InputDecoration(
                           hintText: 'Search products...',
                           prefixIcon: const Icon(Icons.search),
@@ -479,7 +488,7 @@ class CompareProductView extends StatelessWidget {
                         ),
                         onChanged: (value) => setState(() {}),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 10),
                       Flexible(
                         child: FutureBuilder<List<Product>>(
                           future:
@@ -563,6 +572,7 @@ class CompareProductView extends StatelessWidget {
 
   Widget _buildProductListItem(BuildContext context, Product product,
       CompareProductViewModel compareVM) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 0,
@@ -577,7 +587,7 @@ class CompareProductView extends StatelessWidget {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.network(
-            "http://localhost:8000/product-image/${product.imageUrl.split('/').last}",
+            "${apiService.baseStorageUrl}/products/${product.imageUrl.split('/').last}",
             width: 48,
             height: 48,
             fit: BoxFit.cover,
@@ -589,7 +599,7 @@ class CompareProductView extends StatelessWidget {
         ),
         title: Text(
           product.name,
-          style: Theme.of(context).textTheme.bodyLarge,
+          style: Theme.of(context).textTheme.bodySmall,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),

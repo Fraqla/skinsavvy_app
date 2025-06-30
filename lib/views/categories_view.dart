@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 
 import '../viewmodels/category_view_model.dart';
 import '../models/category_model.dart';
@@ -24,7 +25,8 @@ class CategoriesView extends StatelessWidget {
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.deepPurple,
       ),
-      body: Consumer<CategoryViewModel>(
+      body: SafeArea(
+    child: Consumer<CategoryViewModel>(
         builder: (context, viewModel, _) {
             if (viewModel.isLoading) {
               return _buildLoadingState(context);
@@ -37,7 +39,7 @@ class CategoriesView extends StatelessWidget {
             }
           },
         ),
-      );
+      ));
   }
 
   Widget _buildLoadingState(BuildContext context) {
@@ -87,27 +89,34 @@ class CategoriesView extends StatelessWidget {
   }
 
   Widget _buildCategoryGrid(BuildContext context, List<Category> categories) {
-    return AnimationLimiter(
-      child: RefreshIndicator(
-        onRefresh: () => context.read<CategoryViewModel>().fetchCategories(),
-        child: GridView.builder(
-          padding: const EdgeInsets.all(16),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.85,
-          ),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            return _buildCategoryCard(context, categories[index], index);
-          },
-        ),
+  return AnimationLimiter(
+    child: RefreshIndicator(
+      onRefresh: () => context.read<CategoryViewModel>().fetchCategories(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return GridView.builder(
+            padding: const EdgeInsets.all(16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              childAspectRatio: 0.85,
+            ),
+            itemCount: categories.length,
+            physics: const AlwaysScrollableScrollPhysics(),
+            itemBuilder: (context, index) {
+              return _buildCategoryCard(context, categories[index], index);
+            },
+          );
+        },
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   Widget _buildCategoryCard(BuildContext context, Category category, int index) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
     return AnimationConfiguration.staggeredGrid(
       position: index,
       duration: const Duration(milliseconds: 500),
@@ -166,7 +175,7 @@ class CategoriesView extends StatelessWidget {
                         child: Hero(
                           tag: 'category-image-${category.id}',
                           child: Image.network(
-                            "http://localhost:8000/category-image/${category.imageUrl.split('/').last}",
+                            "${apiService.baseStorageUrl}/${category.imageUrl.split('/').last}",
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) => Icon(
                               Icons.category,

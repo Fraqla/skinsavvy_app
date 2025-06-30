@@ -13,17 +13,29 @@ class UserModel {
     required this.userSkinType,
   });
 
+  // Add this copyWith method
+  UserModel copyWith({
+    String? id,
+    String? name,
+    String? email,
+    UserSkinType? userSkinType,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      userSkinType: userSkinType ?? this.userSkinType,
+    );
+  }
+
 factory UserModel.fromJson(Map<String, dynamic> json) {
-  print('Full user JSON response: $json'); // Add this line
-  print('Skin type data: ${json['user_skin_type']}'); // Check the exact key
-  
   return UserModel(
     id: json['id'].toString(),
     name: json['name'],
     email: json['email'],
-    userSkinType: json['user_skin_type'] != null
-      ? UserSkinType.fromJson(json['user_skin_type'])
-      : null,
+    userSkinType: json['skin_type'] != null 
+        ? UserSkinType.fromJson(json['skin_type'])
+        : null,
   );
 }
 
@@ -35,5 +47,4 @@ factory UserModel.fromJson(Map<String, dynamic> json) {
       'skin_type': userSkinType?.toJson(),
     };
   }
-  
 }

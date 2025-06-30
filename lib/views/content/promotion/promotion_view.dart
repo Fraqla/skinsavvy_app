@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import '../../../viewmodels/promotion_view_model.dart';
 import 'promotion_detail_view.dart';
 
@@ -155,6 +156,8 @@ class _PromotionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+
     return Card(
       elevation: 4,
       margin: const EdgeInsets.only(bottom: 20),
@@ -186,7 +189,7 @@ class _PromotionCard extends StatelessWidget {
                   child: ClipRRect(
                     child: promotion.imageUrl != null
                         ? Image.network(
-                            "http://localhost:8000/promotion-image/${promotion.imageUrl!.split('/').last}",
+                            "${apiService.baseStorageUrl}/promotion-image/${promotion.imageUrl!.split('/').last}",
                             height: 180,
                             width: double.infinity,
                             fit: BoxFit.cover,

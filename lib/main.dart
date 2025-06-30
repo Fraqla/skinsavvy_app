@@ -9,6 +9,7 @@ import 'package:skinsavvy_app/viewmodels/login_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/category_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/product_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/tips_view_model.dart';
+import 'package:skinsavvy_app/viewmodels/user_view_model.dart';
 import 'package:skinsavvy_app/views/landing_view.dart';
 import 'package:skinsavvy_app/viewmodels/skin_knowledge_view_model.dart';
 import 'package:skinsavvy_app/viewmodels/prohibited_product_view_model.dart';
@@ -34,6 +35,10 @@ void main() async {
         ChangeNotifierProvider.value(value: authService),
         Provider<ApiService>(create: (_) => ApiService()),
         ChangeNotifierProvider(create: (_) => LoginViewModel()),
+        ChangeNotifierProvider(create: (context) => UserViewModel(
+      apiService: ApiService(),
+      token: context.read<LoginViewModel>().token ?? '',
+    )),
         ChangeNotifierProvider(create: (_) => RegisterViewModel()),
         ChangeNotifierProvider(create: (_) => CategoryViewModel()),
         ChangeNotifierProvider(create: (_) => ProductViewModel()),  
@@ -46,7 +51,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CompareProductViewModel()),
         ChangeNotifierProvider(create: (_) => ReviewViewModel()),
         ChangeNotifierProvider(create: (context) => UserAllergiesViewModel(Provider.of<ApiService>(context, listen: false))),
-        ChangeNotifierProvider(create: (context) => SkinQuizViewModel(context)), 
+        ChangeNotifierProvider(create: (context) => SkinQuizViewModel()), 
         ChangeNotifierProvider(create: (_) => ChatbotViewModel(), child: const MyApp()),
         
       ],

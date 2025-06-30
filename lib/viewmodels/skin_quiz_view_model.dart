@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:skinsavvy_app/viewmodels/login_view_model.dart';
+import 'package:skinsavvy_app/viewmodels/user_view_model.dart';
 import '../models/skin_quiz_model.dart';
 import '../services/api_service.dart';
 
@@ -15,10 +17,8 @@ class SkinQuizViewModel extends ChangeNotifier {
   bool _isAuthenticated = false;
   String _token = '';
 
-  SkinQuizViewModel(BuildContext context) : _apiService = ApiService() {
-    _apiService.setContext(context);
-    _loadToken();
-  }
+  // Remove context from constructor
+  SkinQuizViewModel() : _apiService = ApiService();
 
   // Getters
   List<SkinQuizModel> get skinQuizzes => _skinQuizzes;
@@ -33,7 +33,6 @@ class SkinQuizViewModel extends ChangeNotifier {
           ? _skinQuizzes[_currentQuestionIndex]
           : null;
 
-  // Token loading
   Future<void> _loadToken() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('authToken') ?? '';
@@ -66,6 +65,7 @@ class SkinQuizViewModel extends ChangeNotifier {
 
   Future<void> answerQuestion(String answer, int score) async {
     _userAnswers[currentQuestionIndex] = answer;
+    _totalScore += score;
 
     if (_currentQuestionIndex < _skinQuizzes.length - 1) {
       _currentQuestionIndex++;
@@ -73,6 +73,22 @@ class SkinQuizViewModel extends ChangeNotifier {
       await _submitAnswers();
     }
 
+    notifyListeners();
+  }
+
+Future<void> submitQuizResults(
+      UserViewModel userVM, 
+      LoginViewModel loginVM) async {
+    await _submitAnswers();
+    
+    // Get fresh user data
+    await userVM.loadUserProfile();
+    
+    // Update login VM if needed
+    if (userVM.user != null) {
+      loginVM.updateUserSkinType(userVM.user!.userSkinType);
+    }
+    
     notifyListeners();
   }
 
@@ -85,24 +101,27 @@ class SkinQuizViewModel extends ChangeNotifier {
         await _loadToken();
       }
 
-      final answers = _userAnswers.entries
-          .map((e) => {
-                'quiz_id': _skinQuizzes[e.key].id,
-                'user_answer': e.value,
-                'score': _skinQuizzes[e.key].answers
-                    .firstWhere((ans) => ans.text == e.value)
-                    .score,
-              })
-          .toList();
+      final answers = _userAnswers.entries.map((e) => {
+        'quiz_id': _skinQuizzes[e.key].id,
+        'user_answer': e.value,
+        'score': _skinQuizzes[e.key].answers
+            .firstWhere((ans) => ans.text == e.value)
+            .score,
+      }).toList();
 
-      final responseJson =
-          await _apiService.submitSkinQuizAnswers(answers, _token);
-
-      _skinTypeResult = responseJson['skin_type'];
-      _totalScore = responseJson['total_score'];
+      final response = await _apiService.submitSkinQuizAnswers(answers, _token);
+      
+      _skinTypeResult = response['skin_type'];
+      _totalScore = response['total_score'];
+      
+      // If your backend returns the updated user
+      if (response['user'] != null) {
+        // You can update your UserModel here if needed
+      }
+      
       _error = null;
     } catch (e) {
-      _error = 'Failed to submit answers. Please try again.';
+      _error = 'Failed to submit answers: ${e.toString()}';
     } finally {
       _isLoading = false;
       notifyListeners();

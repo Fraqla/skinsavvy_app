@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:skinsavvy_app/models/review_model.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import 'package:skinsavvy_app/views/login_view.dart';
 import '../../viewmodels/review_view_model.dart';
 import 'dart:io';
@@ -64,6 +65,8 @@ class _ReviewViewState extends State<ReviewView> {
   }
 
   Widget _buildReviewCard(Review review) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -86,7 +89,7 @@ class _ReviewViewState extends State<ReviewView> {
                       review.userName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 14,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -124,14 +127,14 @@ class _ReviewViewState extends State<ReviewView> {
                   color: Colors.amber,
                 ),
                 itemCount: 5,
-                itemSize: 20,
+                itemSize: 18,
                 unratedColor: Colors.amber.withAlpha(50),
                 direction: Axis.horizontal,
               ),
               const SizedBox(height: 12),
               Text(
                 review.review,
-                style: const TextStyle(fontSize: 14, height: 1.4),
+                style: const TextStyle(fontSize: 12, height: 1.4),
               ),
               if (review.photo != null) ...[
                 const SizedBox(height: 12),
@@ -149,10 +152,11 @@ class _ReviewViewState extends State<ReviewView> {
                       ],
                     ),
                     child: Image.network(
-                      "http://localhost:8000/review-image/${review.photo!.split('/').last}",
-                      height: 180,
+                      "${apiService.baseStorageUrl}/reviews/${review.photo!.split('/').last}",
+                      height: 200,
                       width: double.infinity,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
+
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
                         return Center(
@@ -225,7 +229,7 @@ class _ReviewViewState extends State<ReviewView> {
           const Text(
             'Login to share your experience',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -489,7 +493,7 @@ class _ReviewViewState extends State<ReviewView> {
                 Text(
                   'Share Your Experience',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).primaryColor,
                   ),
@@ -634,7 +638,7 @@ class _ReviewViewState extends State<ReviewView> {
                     icon: const Icon(Icons.camera_alt),
                     label: const Text('Add Photo'),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -647,7 +651,7 @@ class _ReviewViewState extends State<ReviewView> {
                   child: ElevatedButton(
                     onPressed: _isSubmitting ? null : _submitReview,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -655,8 +659,8 @@ class _ReviewViewState extends State<ReviewView> {
                     ),
                     child: _isSubmitting
                         ? const SizedBox(
-                            width: 20,
-                            height: 20,
+                            width: 15,
+                            height: 15,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               color: Colors.white,
@@ -665,7 +669,7 @@ class _ReviewViewState extends State<ReviewView> {
                         : const Text(
                             "Submit",
                             style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 14,
                                 color:
                                     Colors.white), // Added explicit white color
                           ),

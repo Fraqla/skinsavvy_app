@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/api_service.dart';
 import '../../models/product_model.dart';
 import 'product_details_view.dart';
@@ -25,7 +26,6 @@ class _CategoryProductsViewState extends State<CategoryProductsView> {
   bool _isSearching = false;
   final TextEditingController _searchController = TextEditingController();
   String? _selectedSkinType;
-  final String _baseImageUrl = 'http://localhost:8000/product-image/';
   
   // List of skin types for filtering
   final List<String> _skinTypes = [
@@ -356,6 +356,8 @@ class _CategoryProductsViewState extends State<CategoryProductsView> {
   }
 
   Widget _buildProductCard(Product product) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -397,7 +399,7 @@ class _CategoryProductsViewState extends State<CategoryProductsView> {
                       Hero(
                         tag: 'product-${product.id}',
                         child: Image.network(
-                          "$_baseImageUrl${product.imageUrl.split('/').last}",
+                          "${apiService.baseStorageUrl}/products/${product.imageUrl.split('/').last}",
                           fit: BoxFit.cover,
                           loadingBuilder: (context, child, loadingProgress) {
                             if (loadingProgress == null) return child;
@@ -453,7 +455,7 @@ class _CategoryProductsViewState extends State<CategoryProductsView> {
                               product.suitability!,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 10,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -471,7 +473,7 @@ class _CategoryProductsViewState extends State<CategoryProductsView> {
                     Text(
                       product.name,
                       style: const TextStyle(
-                        fontSize: 15,
+                        fontSize: 10,
                         fontWeight: FontWeight.w600,
                         height: 1.3,
                       ),

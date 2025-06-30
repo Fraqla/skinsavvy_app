@@ -10,6 +10,11 @@ class AuthService with ChangeNotifier {
   String? get userId => _userId;
   bool get isAuthenticated => _authToken != null;
 
+Future<String?> getToken() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('authToken');
+}
+
   Future<void> loadAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     _authToken = prefs.getString('authToken');

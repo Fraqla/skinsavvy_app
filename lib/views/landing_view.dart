@@ -80,6 +80,7 @@ class _LandingViewState extends State<LandingView> {
   }
 
   Widget _buildCategoryItem(Category category) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -113,8 +114,7 @@ class _LandingViewState extends State<LandingView> {
               ),
               child: (category.imageUrl != null && category.imageUrl.isNotEmpty)
                   ? CachedNetworkImage(
-                      imageUrl:
-                          "http://localhost:8000/category-image/${category.imageUrl.split('/').last}",
+                      imageUrl: "${apiService.baseStorageUrl}/category-images/${category.imageUrl.split('/').last}",
                       fit: BoxFit.cover,
                       placeholder: (context, url) =>
                           const Center(child: CircularProgressIndicator()),
@@ -201,6 +201,7 @@ class _LandingViewState extends State<LandingView> {
   }
 
   Widget _buildTipCard(Tip tip) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
     return Container(
       width: 200,
       margin: const EdgeInsets.only(right: 16),
@@ -222,7 +223,7 @@ class _LandingViewState extends State<LandingView> {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: CachedNetworkImage(
               imageUrl:
-                  "http://localhost:8000/tip-image/${tip.imageUrl.split('/').last}",
+                  "${apiService.baseStorageUrl}/tips/${tip.imageUrl.split('/').last}",
               height: 80,
               width: double.infinity,
               fit: BoxFit.cover,

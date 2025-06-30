@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import '../../../viewmodels/ingredient_view_model.dart';
 import '../ingredient/Ingredient_detail_view.dart';
 
@@ -37,6 +38,7 @@ class _IngredientViewState extends State<IngredientView> {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
     final viewModel = Provider.of<IngredientViewModel>(context);
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
@@ -164,7 +166,7 @@ class _IngredientViewState extends State<IngredientView> {
                                             child: ClipRRect(
                                               borderRadius: BorderRadius.circular(12),
                                               child: Image.network(
-                                                "http://localhost:8000/ingredient-image/${ingredient.imageUrl.split('/').last}",
+                                                "${apiService.baseStorageUrl}/ingredient-image/${ingredient.imageUrl.split('/').last}",
                                                 width: 80,
                                                 height: 80,
                                                 fit: BoxFit.cover,

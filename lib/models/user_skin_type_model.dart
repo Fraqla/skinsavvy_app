@@ -13,6 +13,7 @@ class UserSkinType {
   });
 
   factory UserSkinType.fromJson(Map<String, dynamic> json) {
+    print('Parsing skin type JSON: $json');
     return UserSkinType(
       id: json['id'],
       userId: json['user_id'],
@@ -23,6 +24,7 @@ class UserSkinType {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'user_id': userId,
       'total_score': totalScore,
       'skin_type': skinType,

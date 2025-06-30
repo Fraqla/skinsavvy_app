@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import '../../../viewmodels/prohibited_product_view_model.dart';
 
 class ProhibitedProductDetailsView extends StatefulWidget {
@@ -23,6 +24,8 @@ class _ProhibitedProductDetailsViewState extends State<ProhibitedProductDetailsV
 
   @override
   Widget build(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -123,7 +126,7 @@ class _ProhibitedProductDetailsViewState extends State<ProhibitedProductDetailsV
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: Image.network(
-                        "http://localhost:8000/prohibited-products/${product.imageUrl!.split('/').last}",
+                        "${apiService.baseStorageUrl}/prohibited-products/${product.imageUrl!.split('/').last}",
                         width: 220,
                         height: 220,
                         fit: BoxFit.cover,

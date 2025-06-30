@@ -19,19 +19,22 @@ import '../models/wishlist_model.dart';
 import 'auth_provider.dart';
 import 'package:provider/provider.dart';
 
-
 class ApiService {
   late BuildContext _context;
 
-  String get baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:8000/api';
-    } else if (Platform.isAndroid) {
-      return 'http://10.167.34.119:8000/api';
-    } else {
-      return 'http://localhost:8000/api';
-    }
+ String get baseHost {
+  if (kIsWeb) {
+    return 'http://localhost:8000';
+  } else if (Platform.isAndroid) {
+    return 'http://10.211.106.226:8000';
+  } else {
+    return 'http://localhost:8000';
   }
+}
+
+
+String get baseUrl => '$baseHost/api';
+String get baseStorageUrl => '$baseHost/storage';
 
   ApiService();
 
@@ -147,6 +150,17 @@ class ApiService {
     }
   }
 
+Future<List<Product>> getCompareProduct() async {
+    final response = await http.get(Uri.parse('$baseUrl/products'));
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      final List<dynamic> productsData = data['data'];
+      return productsData.map((json) => Product.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load compare products');
+    }
+  }
+
   Future<List<Tip>> getTips() async {
     final response = await http.get(Uri.parse('$baseUrl/tips'));
     if (response.statusCode == 200) {
@@ -179,16 +193,17 @@ class ApiService {
     }
   }
 
-Future<ProhibitedProductModel> getProhibitedProductById(int id) async {
-  final response = await http.get(Uri.parse('$baseUrl/prohibited-products/$id'));
+  Future<ProhibitedProductModel> getProhibitedProductById(int id) async {
+    final response =
+        await http.get(Uri.parse('$baseUrl/prohibited-products/$id'));
 
-  if (response.statusCode == 200) {
-    final dynamic data = json.decode(response.body);
-    return ProhibitedProductModel.fromJson(data);
-  } else {
-    throw Exception('Failed to load prohibited product details');
+    if (response.statusCode == 200) {
+      final dynamic data = json.decode(response.body);
+      return ProhibitedProductModel.fromJson(data);
+    } else {
+      throw Exception('Failed to load prohibited product details');
+    }
   }
-}
 
   Future<List<IngredientModel>> getIngredients() async {
     final response = await http.get(Uri.parse('$baseUrl/ingredients'));
@@ -238,41 +253,40 @@ Future<ProhibitedProductModel> getProhibitedProductById(int id) async {
     }
   }
 
-Future<Map<String, dynamic>> submitSkinQuizAnswers(
-    List<Map<String, dynamic>> answers, String token) async {
-  print('Submitting answers: ${jsonEncode(answers)}');
+  Future<Map<String, dynamic>> submitSkinQuizAnswers(
+      List<Map<String, dynamic>> answers, String token) async {
+    print('Submitting answers: ${jsonEncode(answers)}');
 
-  try {
-    final response = await http.post(
-      Uri.parse('http://localhost:8000/api/skin-quizzes/submit'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({'answers': answers}),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/skin-quizzes/submit'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'answers': answers}),
+      );
 
-    print('Response: ${response.statusCode} ${response.body}');
+      print('Response: ${response.statusCode} ${response.body}');
 
-    if (response.statusCode == 200) {
-      final responseJson = jsonDecode(response.body);
-      print('User ID: ${responseJson['user_id']}');
-      print('Skin Type: ${responseJson['skin_type']}');
-      print('Total Score: ${responseJson['total_score']}');
+      if (response.statusCode == 200) {
+        final responseJson = jsonDecode(response.body);
+        print('User ID: ${responseJson['user_id']}');
+        print('Skin Type: ${responseJson['skin_type']}');
+        print('Total Score: ${responseJson['total_score']}');
 
-      print('Quiz submitted successfully');
+        print('Quiz submitted successfully');
 
-      return responseJson; // ✅ Return the response to the caller
-    } else {
-      print('Failed to submit quiz: ${response.statusCode} ${response.body}');
-      throw Exception('Failed to submit quiz: ${response.body}');
+        return responseJson; // ✅ Return the response to the caller
+      } else {
+        print('Failed to submit quiz: ${response.statusCode} ${response.body}');
+        throw Exception('Failed to submit quiz: ${response.body}');
+      }
+    } catch (e) {
+      print('Error submitting quiz: $e');
+      rethrow;
     }
-  } catch (e) {
-    print('Error submitting quiz: $e');
-    rethrow;
   }
-}
-
 
   Future<http.Response> addToWishlist(Product product) async {
     final prefs = await SharedPreferences.getInstance();
@@ -463,42 +477,41 @@ Future<Map<String, dynamic>> submitSkinQuizAnswers(
   }
 
 Future<UserModel> fetchUserProfile(String token) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/user/profile'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
+  final response = await http.get(
+    Uri.parse('$baseUrl/user/profile'),
+    headers: {'Authorization': 'Bearer $token'},
+  );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return UserModel.fromJson(data['user'] ?? data); // Handle both wrapped and unwrapped responses
-    } else {
-      throw Exception('Failed to load user profile');
-    }
+  print('Raw API Response: ${response.body}'); // Debug raw response
+  
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    print('Decoded JSON: $data'); // Debug decoded JSON
+    return UserModel.fromJson(data);
+  }
+  throw Exception('Failed to load profile');
 }
 
 Future<UserModel> updateUserProfile(String token, UserModel user) async {
-    final response = await http.put(
-      Uri.parse('$baseUrl/api/user/profile'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        'name': user.name,
-        'email': user.email,
-        'skin_type': user.userSkinType?.toJson(),
-      }),
-    );
+  final response = await http.put(
+    Uri.parse('$baseUrl/user/profile'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+    body: json.encode({
+      'name': user.name,
+      'email': user.email,
+      // Don't include skin_type here unless you're updating it
+    }),
+  );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return UserModel.fromJson(data['user'] ?? data);
-    } else {
-      throw Exception('Failed to update user profile');
-    }
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    return UserModel.fromJson(data['user'] ?? data);
+  }
+  throw Exception('Failed to update profile');
+
 }
 
   Future<Map<String, String>> _getHeaders({bool withAuth = false}) async {

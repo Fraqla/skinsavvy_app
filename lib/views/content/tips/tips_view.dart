@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import '../../../viewmodels/tips_view_model.dart';
 import 'tip_details_view.dart';
 import '../../../models/tips_model.dart';
@@ -86,6 +87,8 @@ class TipsView extends StatelessWidget {
   }
 
   Widget _buildTipCard(BuildContext context, Tip tip) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -111,7 +114,7 @@ class TipsView extends StatelessWidget {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: Image.network(
-                  "http://localhost:8000/tip-image/${tip.imageUrl.split('/').last}",
+                  "${apiService.baseStorageUrl}/tip-image/${tip.imageUrl.split('/').last}",
                   fit: BoxFit.cover,
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;

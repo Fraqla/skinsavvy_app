@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import '../../viewmodels/wishlist_view_model.dart';
 import '../../models/wishlist_model.dart';
 
@@ -8,6 +9,8 @@ class WishlistView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+
     // Fetch wishlist data when the screen loads
     Future.microtask(() =>
         Provider.of<WishlistViewModel>(context, listen: false).fetchWishlist());
@@ -143,7 +146,7 @@ class WishlistView extends StatelessWidget {
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
-                          "http://localhost:8000/product-image/${item.product.imageUrl.split('/').last}",
+                          "${apiService.baseStorageUrl}/products/${item.product.imageUrl.split('/').last}",
                           width: 50,
                           height: 50,
                           fit: BoxFit.cover,

@@ -1,7 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'package:skinsavvy_app/services/api_service.dart';
 import '../../models/product_model.dart';
 import '../../services/auth_provider.dart';
 import '../../viewmodels/compare_product_view_model.dart';
@@ -11,10 +11,17 @@ import '../../views/product/compare_product_view.dart';
 import '../../views/product/wishlist_view.dart';
 import '../../views/product/review_product_view.dart';
 
-class ProductDetailsView extends StatelessWidget {
+class ProductDetailsView extends StatefulWidget {
   final Product product;
 
   const ProductDetailsView({super.key, required this.product});
+
+  @override
+  State<ProductDetailsView> createState() => _ProductDetailsViewState();
+}
+
+class _ProductDetailsViewState extends State<ProductDetailsView> {
+  String _selectedEffectType = 'Benefits';
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +71,7 @@ class ProductDetailsView extends StatelessWidget {
   }
 
   SliverAppBar _buildSliverAppBar(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
     return SliverAppBar(
       expandedHeight: 380,
       pinned: true,
@@ -71,12 +79,12 @@ class ProductDetailsView extends StatelessWidget {
       flexibleSpace: FlexibleSpaceBar(
         stretchModes: const [StretchMode.zoomBackground],
         background: Hero(
-          tag: 'product-${product.id}',
+          tag: 'product-${widget.product.id}',
           child: Stack(
             fit: StackFit.expand,
             children: [
               Image.network(
-                "http://localhost:8000/product-image/${product.imageUrl.split('/').last}",
+                "${apiService.baseStorageUrl}/products/${widget.product.imageUrl.split('/').last}",
                 fit: BoxFit.cover,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
@@ -131,7 +139,8 @@ class ProductDetailsView extends StatelessWidget {
             ),
           ),
           onPressed: () {
-            final authService = Provider.of<AuthService>(context, listen: false);
+            final authService =
+                Provider.of<AuthService>(context, listen: false);
             if (authService.userId == null) {
               _showLoginPrompt(context);
             } else {
@@ -161,9 +170,9 @@ class ProductDetailsView extends StatelessWidget {
 
   Widget _buildProductTitle() {
     return Text(
-      product.name,
+      widget.product.name,
       style: const TextStyle(
-        fontSize: 28,
+        fontSize: 22,
         fontWeight: FontWeight.w800,
         height: 1.3,
       ),
@@ -174,15 +183,16 @@ class ProductDetailsView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (product.brand != null && product.brand!.isNotEmpty)
+        if (widget.product.brand != null && widget.product.brand!.isNotEmpty)
           _buildMetaItem(
             icon: Icons.branding_watermark,
-            label: product.brand!,
+            label: widget.product.brand!,
           ),
-        if (product.suitability != null && product.suitability!.isNotEmpty)
+        if (widget.product.suitability != null &&
+            widget.product.suitability!.isNotEmpty)
           _buildMetaItem(
             icon: Icons.face_retouching_natural,
-            label: product.suitability!,
+            label: widget.product.suitability!,
           ),
       ],
     );
@@ -201,7 +211,7 @@ class ProductDetailsView extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -223,12 +233,12 @@ class ProductDetailsView extends StatelessWidget {
                 context,
                 listen: false,
               );
-              compareVM.addProduct(product);
+              compareVM.addProduct(widget.product);
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) =>
-                      CompareProductView(categoryId: product.categoryId),
+                      CompareProductView(categoryId: widget.product.categoryId),
                 ),
               );
             },
@@ -244,7 +254,7 @@ class ProductDetailsView extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => ReviewView(productId: product.id),
+                  builder: (_) => ReviewView(productId: widget.product.id),
                 ),
               );
             },
@@ -262,7 +272,10 @@ class ProductDetailsView extends StatelessWidget {
   }) {
     return ElevatedButton.icon(
       icon: Icon(icon, size: 20),
-      label: Text(label),
+      label: Text(
+        label,
+        style: const TextStyle(fontSize: 12),
+      ),
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white,
@@ -283,9 +296,9 @@ class ProductDetailsView extends StatelessWidget {
         _buildSectionTitle('Description'),
         const SizedBox(height: 12),
         Text(
-          product.description ?? 'No description available',
+          widget.product.description ?? 'No description available',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 11,
             height: 1.6,
             color: Colors.grey[800],
           ),
@@ -301,9 +314,9 @@ class ProductDetailsView extends StatelessWidget {
         _buildSectionTitle('Key Ingredients'),
         const SizedBox(height: 12),
         Text(
-          product.ingredient ?? 'Ingredients not specified',
+          widget.product.ingredient ?? 'Ingredients not specified',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 11,
             height: 1.6,
             color: Colors.grey[800],
           ),
@@ -316,7 +329,7 @@ class ProductDetailsView extends StatelessWidget {
     return Text(
       title,
       style: const TextStyle(
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: FontWeight.w700,
         color: Colors.black87,
       ),
@@ -328,111 +341,211 @@ class ProductDetailsView extends StatelessWidget {
       try {
         if (jsonStr == null || jsonStr.isEmpty) return [];
         final decoded = jsonDecode(jsonStr);
-        if (decoded is List) {
-          return decoded.map((e) => e.toString()).toList();
-        }
+        if (decoded is List) return decoded.map((e) => e.toString()).toList();
         return [];
       } catch (e) {
         return [];
       }
     }
 
-    final positiveEffects = safeDecode(product.positive);
-    final negativeEffects = safeDecode(product.negative);
+    final positiveEffects = safeDecode(widget.product.positive);
+    final negativeEffects = safeDecode(widget.product.negative);
+
+    final effects =
+        _selectedEffectType == 'Benefits' ? positiveEffects : negativeEffects;
+    final icon = _selectedEffectType == 'Benefits'
+        ? Icons.verified
+        : Icons.warning_amber_rounded;
+    final color = _selectedEffectType == 'Benefits'
+        ? Colors.green[50]
+        : Colors.orange[50];
+    final textColor = _selectedEffectType == 'Benefits'
+        ? Colors.green[800]
+        : Colors.orange[800];
+    final borderColor = _selectedEffectType == 'Benefits'
+        ? Colors.green[100]
+        : Colors.orange[100];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle('Effects'),
+        _buildSectionTitle('Product Effects'),
         const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildEffectCard(
-                title: 'Benefits',
-                effects: positiveEffects,
-                icon: Icons.thumb_up,
-                color: Colors.green[50],
-                textColor: Colors.green[800],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildEffectCard(
-                title: 'Considerations',
-                effects: negativeEffects,
-                icon: Icons.thumb_down,
-                color: Colors.red[50],
-                textColor: Colors.red[800],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 
-  Widget _buildEffectCard({
-    required String title,
-    required List<String> effects,
-    required IconData icon,
-    required Color? color,
-    required Color? textColor,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        // Segmented control for Benefits/Considerations
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(4),
+          child: Row(
             children: [
-              Icon(icon, color: textColor),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: textColor,
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => setState(() => _selectedEffectType = 'Benefits'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _selectedEffectType == 'Benefits'
+                          ? Colors.white
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: _selectedEffectType == 'Benefits'
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 2,
+                                offset: const Offset(0, 1),
+                              )
+                            ]
+                          : null,
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Benefits',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: _selectedEffectType == 'Benefits'
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: _selectedEffectType == 'Benefits'
+                              ? Colors.green[800]
+                              : Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () =>
+                      setState(() => _selectedEffectType = 'Considerations'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _selectedEffectType == 'Considerations'
+                          ? Colors.white
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: _selectedEffectType == 'Considerations'
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 2,
+                                offset: const Offset(0, 1),
+                              )
+                            ]
+                          : null,
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Considerations',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: _selectedEffectType == 'Considerations'
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: _selectedEffectType == 'Considerations'
+                              ? Colors.orange[800]
+                              : Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          ...effects.map(
-            (effect) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+        const SizedBox(height: 20),
+
+        // Effects content
+        Container(
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor!, width: 1.5),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4, right: 8),
-                    child: Icon(
-                      Icons.circle,
-                      size: 8,
-                      color: textColor,
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: textColor?.withOpacity(0.1),
+                      shape: BoxShape.circle,
                     ),
+                    child: Icon(icon, color: textColor, size: 20),
                   ),
-                  Expanded(
-                    child: Text(
-                      effect,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[800],
-                        height: 1.4,
-                      ),
+                  const SizedBox(width: 12),
+                  Text(
+                    _selectedEffectType,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: textColor,
                     ),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 16),
+              if (effects.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'No ${_selectedEffectType.toLowerCase()} information available',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                )
+              else
+                Column(
+                  children: effects
+                      .map(
+                        (effect) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.only(top: 4),
+                                child: Icon(
+                                  Icons.circle,
+                                  size: 8,
+                                  color: textColor,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  effect,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[800],
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
+                ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -449,13 +562,13 @@ class ProductDetailsView extends StatelessWidget {
 
           final wishlistVM =
               Provider.of<WishlistViewModel>(context, listen: false);
-          final success = await wishlistVM.addToWishlist(product);
+          final success = await wishlistVM.addToWishlist(widget.product);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 success ? 'Added to wishlist' : 'Failed to add to wishlist',
-                style: const TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 12),
               ),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -468,7 +581,7 @@ class ProductDetailsView extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.purple,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -483,7 +596,7 @@ class ProductDetailsView extends StatelessWidget {
             Text(
               'ADD TO WISHLIST',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
               ),

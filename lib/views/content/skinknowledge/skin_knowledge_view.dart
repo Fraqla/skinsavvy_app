@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import '../../../viewmodels/skin_knowledge_view_model.dart';
 import '../../../models/skin_knowledge_model.dart';
 import 'skin_type_detail_view.dart';
@@ -29,7 +30,7 @@ class _SkinKnowledgeViewState extends State<SkinKnowledgeView> {
       appBar: AppBar(
         title: const Text('Skin Type Guide',
             style: TextStyle(
-                fontSize: 22,
+                fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
                 letterSpacing: 0.5)),
@@ -136,7 +137,7 @@ class _SkinKnowledgeViewState extends State<SkinKnowledgeView> {
                       children: [
                         Text('Discover Your Skin Type',
                             style: TextStyle(
-                                fontSize: 22,
+                                fontSize: 20,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.grey[800],
                                 letterSpacing: 0.3)),
@@ -144,7 +145,7 @@ class _SkinKnowledgeViewState extends State<SkinKnowledgeView> {
                         Text(
                             'Learn about different skin types and find the best care routine for your needs',
                             style: TextStyle(
-                                fontSize: 15,
+                                fontSize: 13,
                                 color: Colors.grey[600],
                                 height: 1.4)),
                       ],
@@ -191,6 +192,8 @@ class _SkinTypeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+
     return InkWell(
       onTap: () {
         Navigator.push(
@@ -240,7 +243,7 @@ class _SkinTypeCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Image.network(
-                    'http://localhost:8000/knowledge-image/${skinType.image!.split('/').last}',
+                    '${apiService.baseStorageUrl}/skin-knowledge/${skinType.image!.split('/').last}',
                     width: 90,
                     height: 90,
                     fit: BoxFit.cover,
@@ -272,7 +275,7 @@ class _SkinTypeCard extends StatelessWidget {
                     Text(
                       skinType.skinType,
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Color(0xFF333333),
                       ),
@@ -281,7 +284,7 @@ class _SkinTypeCard extends StatelessWidget {
                     Text(
                       skinType.characteristics.join(', '),
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 12,
                         color: Colors.grey[600],
                         height: 1.4,
                       ),

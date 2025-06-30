@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import '../../../models/skin_knowledge_model.dart';
 
 class SkinTypeDetailView extends StatelessWidget {
@@ -8,6 +10,8 @@ class SkinTypeDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       extendBodyBehindAppBar: true,
@@ -15,7 +19,7 @@ class SkinTypeDetailView extends StatelessWidget {
         title: Text(
           skinInfo.skinType,
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 15,
             fontWeight: FontWeight.w700,
             color: Colors.white,
           ),
@@ -55,7 +59,7 @@ class SkinTypeDetailView extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   child: Image.network(
-                    'http://localhost:8000/knowledge-image/${skinInfo.image!.split('/').last}',
+                    '${apiService.baseStorageUrl}/skin-knowledge/${skinInfo.image!.split('/').last}',
                     width: double.infinity,
                     fit: BoxFit.cover,
                     loadingBuilder: (context, child, loadingProgress) {
@@ -97,7 +101,7 @@ class SkinTypeDetailView extends StatelessWidget {
                         Text(
                           skinInfo.skinType,
                           style: const TextStyle(
-                            fontSize: 28,
+                            fontSize: 24,
                             fontWeight: FontWeight.w800,
                             color: Color(0xFF333333),
                           ),
@@ -179,7 +183,7 @@ class SkinTypeDetailView extends StatelessWidget {
               ),
               child: Icon(
                 icon,
-                size: 22,
+                size: 20,
                 color: iconColor,
               ),
             ),
@@ -187,7 +191,7 @@ class SkinTypeDetailView extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: Colors.grey[800],
               ),
@@ -202,7 +206,7 @@ class SkinTypeDetailView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Padding(
-                  padding: EdgeInsets.only(top: 5, right: 8),
+                  padding: EdgeInsets.only(top: 10, right: 8),
                   child: Icon(
                     Icons.circle,
                     size: 6,
@@ -213,7 +217,7 @@ class SkinTypeDetailView extends StatelessWidget {
                   child: Text(
                     item,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 13,
                       color: Colors.grey[700],
                       height: 1.5,
                     ),

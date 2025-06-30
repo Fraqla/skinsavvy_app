@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import '../../../models/ingredient_model.dart';
 
 class IngredientDetailView extends StatelessWidget {
@@ -8,6 +10,7 @@ class IngredientDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -57,7 +60,7 @@ class IngredientDetailView extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
                   child: Image.network(
-                    "http://localhost:8000/ingredient-image/${ingredient.imageUrl.split('/').last}",
+                    "${apiService.baseStorageUrl}/ingredient-image/${ingredient.imageUrl.split('/').last}",
                     width: 220,
                     height: 220,
                     fit: BoxFit.cover,

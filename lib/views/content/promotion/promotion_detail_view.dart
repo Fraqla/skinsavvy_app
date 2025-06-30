@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import '../../../models/promotion_model.dart';
 
 class PromotionDetailView extends StatelessWidget {
@@ -8,6 +10,7 @@ class PromotionDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
@@ -24,7 +27,7 @@ class PromotionDetailView extends StatelessWidget {
               tag: 'promo-image-${promotion.id}',
               child: promotion.imageUrl != null
                   ? Image.network(
-                      "http://localhost:8000/promotion-image/${promotion.imageUrl!.split('/').last}",
+                      "${apiService.baseStorageUrl}/promotion-image/${promotion.imageUrl!.split('/').last}",
                       width: screenWidth,
                       height: screenHeight * 0.35,
                       fit: BoxFit.cover,

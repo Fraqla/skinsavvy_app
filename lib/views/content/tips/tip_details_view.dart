@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:skinsavvy_app/services/api_service.dart';
 import '../../../models/tips_model.dart';
 
 class TipDetailView extends StatelessWidget {
@@ -8,6 +10,8 @@ class TipDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       body: CustomScrollView(
@@ -21,7 +25,7 @@ class TipDetailView extends StatelessWidget {
               background: Hero(
                 tag: 'tip-image-${tip.id}',
                 child: Image.network(
-                  "http://localhost:8000/tip-image/${tip.imageUrl.split('/').last}",
+                  "${apiService.baseStorageUrl}/tip-image/${tip.imageUrl.split('/').last}",
                   width: double.infinity,
                   fit: BoxFit.cover,
                   loadingBuilder: (context, child, loadingProgress) {

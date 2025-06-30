@@ -16,21 +16,19 @@ class UserViewModel extends ChangeNotifier {
 
   UserViewModel({required this.apiService, required this.token});
 
-  Future<void> loadUserProfile() async {
-    _loading = true;
-    _error = null;
-    notifyListeners();
+Future<void> loadUserProfile() async {
+  _loading = true;
+  notifyListeners();
 
-    try {
-      final fetchedUser = await apiService.fetchUserProfile(token);
-      _user = fetchedUser;
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _loading = false;
-      notifyListeners();
-    }
+  try {
+    _user = await apiService.fetchUserProfile(token);
+    print('Loaded user skin type: ${_user?.userSkinType?.skinType}'); // Debug
+    notifyListeners();
+  } catch (e) {
+    _error = e.toString();
+    notifyListeners();
   }
+}
 
   Future<void> updateUserProfile(UserModel updatedUser) async {
     _loading = true;
